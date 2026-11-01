@@ -501,7 +501,10 @@ namespace BBQKing.EditorTools
             SetRef(prompt, "label", promptText);
             promptPanel.gameObject.SetActive(false);
 
-            // --- Message panel (letters and notes), centred
+            // --- Jobs board (Tab), centred
+            RestorationBuilder.AddJobsBoard(canvasGo.transform, input, restoration);
+
+            // --- Message panel (letters and notes), centred, on top of everything else
             var messageRoot = UiFactory.Root(canvasGo.transform, "Message Panel");
             var paper = UiFactory.Image(messageRoot, "Paper", PlaceholderArt.UiPanelPaper);
             UiFactory.Anchor(paper.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(380f, 240f));

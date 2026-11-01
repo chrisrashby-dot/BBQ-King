@@ -284,6 +284,29 @@ namespace BBQKing.EditorTools
             SetRef(tracker, "showMessageChannel", messageChannel);
         }
 
+        /// <summary>The jobs board, a paper panel in the middle of the screen opened with Tab.</summary>
+        public static void AddJobsBoard(Transform canvas, InputReader input, Assets a)
+        {
+            var root = UiFactory.Root(canvas, "Jobs Board");
+            var paper = UiFactory.Image(root, "Paper", PlaceholderArt.UiPanelPaper);
+            UiFactory.Anchor(paper.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(400f, 280f));
+            var title = UiFactory.Text(paper.transform, "Title", "Jobs", 16, TextAnchor.UpperLeft, UiFactory.InkText);
+            title.fontStyle = FontStyle.Bold;
+            UiFactory.Stretch(title.rectTransform, 16, 240, 16, 14);
+            var list = UiFactory.Text(paper.transform, "List", "", 11, TextAnchor.UpperLeft, UiFactory.InkText);
+            list.horizontalOverflow = HorizontalWrapMode.Wrap;
+            UiFactory.Stretch(list.rectTransform, 16, 30, 16, 40);
+            var hint = UiFactory.Text(paper.transform, "Close Hint", "[Tab] or [Esc] Close", 10, TextAnchor.LowerRight, UiFactory.InkText);
+            UiFactory.Stretch(hint.rectTransform, 16, 10, 16, 250);
+
+            var board = root.gameObject.AddComponent<JobsBoardUI>();
+            SetRef(board, "input", input);
+            SetRef(board, "jobBook", a.jobBook);
+            SetRef(board, "panel", paper.gameObject);
+            SetRef(board, "listLabel", list);
+            paper.gameObject.SetActive(false);
+        }
+
         /// <summary>The current job in the top-left corner of the screen.</summary>
         public static void AddJobHud(Transform canvas, Assets a)
         {

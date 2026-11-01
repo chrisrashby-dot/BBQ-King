@@ -2,6 +2,7 @@ using System.Collections;
 using BBQKing.Restoration;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
@@ -47,6 +48,23 @@ namespace BBQKing.Tests
             int count = CountOnPatio();
             Assert.Greater(count, 0, "the patio should start with weeds and trash");
             Assert.AreEqual($"{count} left", hudProgress.text);
+        }
+
+        [UnityTest]
+        public IEnumerator TabOpensAndClosesTheJobsBoard()
+        {
+            var board = GameObject.Find("UI/Jobs Board").transform.Find("Paper").gameObject;
+            var list = board.transform.Find("List").GetComponent<Text>();
+
+            yield return Hold(Key.Tab, 0.05f);
+            Assert.IsTrue(board.activeSelf, "Tab should open the board");
+            Assert.IsFalse(input.IsPlayerInputEnabled, "the player should stand still while it is open");
+            StringAssert.Contains("Clear the patio: To do", list.text);
+            StringAssert.Contains("Clean the kettle grill: Locked", list.text);
+
+            yield return Hold(Key.Tab, 0.05f);
+            Assert.IsFalse(board.activeSelf, "Tab again should close it");
+            Assert.IsTrue(input.IsPlayerInputEnabled);
         }
 
         [UnityTest]
