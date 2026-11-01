@@ -1,0 +1,33 @@
+# Unity generated folders inside the BBQKing project (rebuilt when the project opens)
+/BBQKing/[Ll]ibrary/
+/BBQKing/[Tt]emp/
+/BBQKing/[Oo]bj/
+/BBQKing/[Bb]uild/
+/BBQKing/[Bb]uilds/
+/BBQKing/[Ll]ogs/
+/BBQKing/[Uu]ser[Ss]ettings/
+/BBQKing/MemoryCaptures/
+/BBQKing/Recordings/
+
+# IDE files (Visual Studio and Rider regenerate these)
+.vs/
+.vscode/
+.idea/
+*.csproj
+*.sln
+*.slnx
+*.suo
+*.user
+*.pidb
+*.booproj
+
+# Crash reports and OS clutter
+sysinfo.txt
+crashlytics-build.properties
+.DS_Store
+Thumbs.db
+
+# Earlier art-style prototypes and the old pitch: kept on disk for reference only
+/BBQ-Prototype-2D/
+/BBQ-Prototype-3D/
+/pitch.md.old

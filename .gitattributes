@@ -1,0 +1,24 @@
+# Unity text assets: let Git handle line endings consistently
+*.cs        text eol=lf diff=csharp
+*.md        text eol=lf
+*.json      text eol=lf
+*.asmdef    text eol=lf
+*.inputactions text eol=lf
+*.unity     text eol=lf
+*.prefab    text eol=lf
+*.asset     text eol=lf
+*.meta      text eol=lf
+*.mat       text eol=lf
+*.anim      text eol=lf
+*.controller text eol=lf
+
+# Art and audio go in Git LFS (design.md section 9), so the repository stays small
+*.png       filter=lfs diff=lfs merge=lfs -text
+*.psd       filter=lfs diff=lfs merge=lfs -text
+*.aseprite  filter=lfs diff=lfs merge=lfs -text
+*.ase       filter=lfs diff=lfs merge=lfs -text
+*.wav       filter=lfs diff=lfs merge=lfs -text
+*.ogg       filter=lfs diff=lfs merge=lfs -text
+*.mp3       filter=lfs diff=lfs merge=lfs -text
+*.ttf       filter=lfs diff=lfs merge=lfs -text
+*.otf       filter=lfs diff=lfs merge=lfs -text
