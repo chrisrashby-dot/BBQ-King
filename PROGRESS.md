@@ -6,8 +6,8 @@ Claude Code updates this file at the end of every session. Newest entry at the t
 
 | Milestone | Status |
 | --- | --- |
-| M1 Foundations | Built; waiting for a hand play-test in the Editor |
-| M2 Restoration | Not started |
+| M1 Foundations | Done (play-tested 1 Nov 2026) |
+| M2 Restoration | In progress: planning |
 | M3 Cleaning | Not started |
 | M4 First cookout | Not started |
 | M5 Economy and saving | Not started |
