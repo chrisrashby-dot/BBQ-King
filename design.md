@@ -268,7 +268,7 @@ A warm, cosy 2D pixel art look. The main visual reference is Space Station 13: 3
 | Grid | 32x32 pixels for tiles, objects and characters; larger items in multiples of 32 |
 | Characters | 32x32, four directions (up, down, left, right), walk cycle of 4 frames |
 | Close-ups | Zoomed-in scenes for scrubbing and cooking, in the same pixel style at a larger scale |
-| Resolution | 960x540 reference resolution (proposed), showing about 30 x 17 tiles for a wide, Space Station 13 style view; scaled up crisply with a pixel-perfect camera |
+| Resolution | 960x540 reference resolution, showing about 30 x 17 tiles for a wide, Space Station 13 style view; scaled up crisply with a pixel-perfect camera |
 | Assets | All original; no copied assets from Space Station 13 or any other game |
 
 ### 7.2 Art style guide
@@ -312,7 +312,7 @@ Everything Act 1 needs, so art and build work can be tracked. Placeholders are f
 | --- | --- |
 | Engine | Unity 6, 2D project, Universal Render Pipeline with the 2D renderer |
 | Language | C# |
-| Camera | Pixel Perfect Camera at 960x540 (proposed), 32 pixels per unit, integer scaling only: 2x on 1080p, 4x on 4K, black borders on 1440p |
+| Camera | Pixel Perfect Camera at 960x540, 32 pixels per unit, integer scaling only: 2x on 1080p, 4x on 4K, black borders on 1440p |
 | Sprite import | Point (no filter), no compression, pixels per unit 32 |
 | World | Unity Tilemap for ground, overgrowth and fences; objects as prefabs |
 | Input | Unity's Input System package, with actions defined in one input asset |
@@ -351,12 +351,13 @@ Newest decisions at the bottom. When a decision changes, add a new row rather th
 | 31 Oct 2026 | Story: inheriting a late relative's house | Gentle motivation and a reason the backyard is neglected |
 | 31 Oct 2026 | Strictly single-player | Simpler build; suits the cosy pace |
 | 31 Oct 2026 | Pitch document became this design document | Moving into the specification phase |
-| 31 Oct 2026 | Proposed 960x540 reference resolution instead of 640x360 (to be confirmed by testing) | Space Station 13 shows a wide area with small-looking sprites; 960x540 gives a wider view and scales cleanly on 1080p and 4K |
+| 31 Oct 2026 | 960x540 reference resolution instead of 640x360 (confirmed by testing) | Space Station 13 shows a wide area with small-looking sprites; 960x540 gives a wider view and scales cleanly on 1080p and 4K |
 
 ## 11. Open questions
 
 - [ ] Review and confirm the Act 1 proposal in section 4: flow, jobs, events and recipes.
-- [ ] Confirm or adjust the starting values in section 5 after the first playtest. Choose the reference resolution by trying 640x360, 960x540 and 1280x720 in the 2D prototype.
+- [ ] Confirm or adjust the starting values in section 5 after the first playtest.
+- [x] Choose the reference resolution by trying 640x360, 960x540 and 1280x720 in the 2D prototype.
 - [ ] Find a reliable barbecue source for rib and brisket finish temperatures.
 - [ ] Who was the relative (grandparent, aunt or uncle), and what was their name?
 - [ ] Design the player character: fixed or customisable?

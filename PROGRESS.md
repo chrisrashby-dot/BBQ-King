@@ -37,7 +37,7 @@ Next: finish play-testing M1 in the Editor (see the README), then start **M2 Res
 
 ## Questions for the developer
 
-- **Reference resolution (answered 1 Nov 2026):** 960x540 chosen after testing. Please update the master design document: drop "(proposed)" in sections 7.1 and 9, mark the decision log entry of 31 Oct 2026 as confirmed, and tick the resolution item in section 11. CLAUDE.md is already updated.
+- **Reference resolution (answered 1 Nov 2026):** 960x540 chosen after testing. design.md and CLAUDE.md are both updated.
 - **Relative's name and the letter text:** still open in design.md section 11. The letter in `Data/Messages/RelativeLetter` has clearly marked placeholder text.
 - **Starting values for the player:** walking speed 3.5 tiles a second, walk animation 8 frames a second, reach 0.5 tiles ahead with a 0.6 tile radius. design.md does not set these; they are in `PlayerConfig` to tune.
 - **Small additions beyond the plan, for your information (no design change):**
