@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
+using static BBQKing.EditorTools.BuilderUtil;
 
 namespace BBQKing.EditorTools
 {
@@ -80,6 +81,7 @@ namespace BBQKing.EditorTools
             var messageChannel = PlaceholderAssetWriter.LoadOrCreateAsset<MessageEventChannel>(MessageChannelPath);
             var letterMessage = LoadOrCreateMessage(LetterMessagePath, LetterTitle, LetterBody);
             var doorMessage = LoadOrCreateMessage(BackDoorMessagePath, BackDoorTitle, BackDoorBody);
+            var restoration = RestorationBuilder.LoadAssets();
 
             // ---------- Game: scene-wide helpers
             var gameGo = new GameObject("Game");
@@ -98,7 +100,7 @@ namespace BBQKing.EditorTools
             var cam = BuildCamera(display, map.ground);
 
             // ---------- UI
-            BuildUI(display, input, promptChannel, messageChannel);
+            BuildUI(display, input, promptChannel, messageChannel, restoration);
 
             // ---------- Player
             var player = BuildPlayer(input, playerConfig, playerSprites);
@@ -107,6 +109,7 @@ namespace BBQKing.EditorTools
             SetRef(interactor, "movement", player);
             SetRef(interactor, "config", playerConfig);
             SetRef(interactor, "promptChannel", promptChannel);
+            RestorationBuilder.AddToPlayer(player.gameObject, input, restoration);
 
             // ---------- Interactable objects (prefabs placed in the scene)
             var letterPrefab = LoadOrCreateMessagePrefab(LetterPrefabPath, "Letter", PlaceholderArt.Letter,
@@ -466,12 +469,9 @@ namespace BBQKing.EditorTools
 
         // ------------------------------------------------------------------ UI
 
-        static readonly Color32 LightText = new Color32(0xf6, 0xec, 0xd6, 0xff);
-        static readonly Color32 InkText = new Color32(0x3a, 0x2a, 0x20, 0xff);
-
         // UI sizes are in art pixels at the reference resolution; the canvas scaler multiplies them up.
         static Canvas BuildUI(DisplayConfig display, InputReader input, StringEventChannel promptChannel,
-            MessageEventChannel messageChannel)
+            MessageEventChannel messageChannel, RestorationBuilder.Assets restoration)
         {
             var canvasGo = new GameObject("UI");
             var canvas = canvasGo.AddComponent<Canvas>();
@@ -479,13 +479,17 @@ namespace BBQKing.EditorTools
             canvas.pixelPerfect = true;
             SetRef(canvasGo.AddComponent<PixelCanvasScaler>(), "displayConfig", display);
 
-            // --- Interaction prompt, bottom centre. The controller sits on a parent that stays
+            // --- Toolbar, bottom centre. Created first so panels drawn later appear on top of it
+            // (Unity draws UI in the order it appears in the Hierarchy).
+            RestorationBuilder.AddToolbar(canvasGo.transform, restoration);
+
+            // --- Interaction prompt, bottom centre above the toolbar. The controller sits on a parent that stays
             // active, because a disabled object stops listening for events.
-            var promptRoot = UiRoot(canvasGo.transform, "Interaction Prompt");
-            var promptPanel = UiImage(promptRoot, "Panel", PlaceholderArt.UiPanelDark);
-            Anchor(promptPanel.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 16f), new Vector2(180f, 22f));
-            var promptText = UiText(promptPanel.transform, "Label", "[E] Read the letter", 12, TextAnchor.MiddleCenter, LightText);
-            Stretch(promptText.rectTransform, 4, 2, 4, 2);
+            var promptRoot = UiFactory.Root(canvasGo.transform, "Interaction Prompt");
+            var promptPanel = UiFactory.Image(promptRoot, "Panel", PlaceholderArt.UiPanelDark);
+            UiFactory.Anchor(promptPanel.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, RestorationBuilder.ToolbarHeight + 4f), new Vector2(180f, 22f));
+            var promptText = UiFactory.Text(promptPanel.transform, "Label", "[E] Read the letter", 12, TextAnchor.MiddleCenter, UiFactory.LightText);
+            UiFactory.Stretch(promptText.rectTransform, 4, 2, 4, 2);
             var prompt = promptRoot.gameObject.AddComponent<InteractionPromptUI>();
             SetRef(prompt, "promptChannel", promptChannel);
             SetRef(prompt, "panel", promptPanel.gameObject);
@@ -493,18 +497,18 @@ namespace BBQKing.EditorTools
             promptPanel.gameObject.SetActive(false);
 
             // --- Message panel (letters and notes), centred
-            var messageRoot = UiRoot(canvasGo.transform, "Message Panel");
-            var paper = UiImage(messageRoot, "Paper", PlaceholderArt.UiPanelPaper);
-            Anchor(paper.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(380f, 240f));
-            var title = UiText(paper.transform, "Title", "Title", 16, TextAnchor.UpperLeft, InkText);
+            var messageRoot = UiFactory.Root(canvasGo.transform, "Message Panel");
+            var paper = UiFactory.Image(messageRoot, "Paper", PlaceholderArt.UiPanelPaper);
+            UiFactory.Anchor(paper.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(380f, 240f));
+            var title = UiFactory.Text(paper.transform, "Title", "Title", 16, TextAnchor.UpperLeft, UiFactory.InkText);
             title.fontStyle = FontStyle.Bold;
-            Stretch(title.rectTransform, 16, 200, 16, 14);
-            var body = UiText(paper.transform, "Body", "Body", 12, TextAnchor.UpperLeft, InkText);
+            UiFactory.Stretch(title.rectTransform, 16, 200, 16, 14);
+            var body = UiFactory.Text(paper.transform, "Body", "Body", 12, TextAnchor.UpperLeft, UiFactory.InkText);
             body.horizontalOverflow = HorizontalWrapMode.Wrap;
             body.lineSpacing = 1.1f;
-            Stretch(body.rectTransform, 16, 30, 16, 44);
-            var hint = UiText(paper.transform, "Close Hint", "[E] or [Esc] Close", 10, TextAnchor.LowerRight, InkText);
-            Stretch(hint.rectTransform, 16, 10, 16, 210);
+            UiFactory.Stretch(body.rectTransform, 16, 30, 16, 44);
+            var hint = UiFactory.Text(paper.transform, "Close Hint", "[E] or [Esc] Close", 10, TextAnchor.LowerRight, UiFactory.InkText);
+            UiFactory.Stretch(hint.rectTransform, 16, 10, 16, 210);
             var panel = messageRoot.gameObject.AddComponent<MessagePanelUI>();
             SetRef(panel, "input", input);
             SetRef(panel, "showMessageChannel", messageChannel);
@@ -514,83 +518,6 @@ namespace BBQKing.EditorTools
             paper.gameObject.SetActive(false);
 
             return canvas;
-        }
-
-        static RectTransform UiRoot(Transform parent, string name)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            Stretch(rt, 0, 0, 0, 0);
-            return rt;
-        }
-
-        static Font UiFont => Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-        static Image UiImage(Transform parent, string name, string spritePath)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var img = go.AddComponent<Image>();
-            img.sprite = LoadSprite(spritePath);
-            img.type = Image.Type.Sliced;
-            img.raycastTarget = false;
-            return img;
-        }
-
-        static Text UiText(Transform parent, string name, string text, int size, TextAnchor align, Color32 colour)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.transform.SetParent(parent, false);
-            var t = go.AddComponent<Text>();
-            t.font = UiFont;
-            t.text = text;
-            t.fontSize = size;
-            t.alignment = align;
-            t.color = colour;
-            t.raycastTarget = false;
-            return t;
-        }
-
-        static void Anchor(RectTransform rt, Vector2 anchor, Vector2 pos, Vector2 size)
-        {
-            rt.anchorMin = rt.anchorMax = rt.pivot = anchor;
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = size;
-        }
-
-        static void Stretch(RectTransform rt, float left, float bottom, float right, float top)
-        {
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.offsetMin = new Vector2(left, bottom);
-            rt.offsetMax = new Vector2(-right, -top);
-        }
-
-        // ------------------------------------------------------------------ helpers
-
-        static Sprite LoadSprite(string path)
-        {
-            var s = AssetDatabase.LoadAssetAtPath<Sprite>(path);
-            if (s == null) Debug.LogError("BBQ King: missing sprite " + path);
-            return s;
-        }
-
-        static void SetString(Object target, string field, string value)
-        {
-            var so = new SerializedObject(target);
-            so.FindProperty(field).stringValue = value;
-            so.ApplyModifiedPropertiesWithoutUndo();
-        }
-
-        // Sets a private [SerializeField] field, exactly as dragging something into the Inspector would.
-        static void SetRef(Object target, string field, Object value)
-        {
-            var so = new SerializedObject(target);
-            var prop = so.FindProperty(field);
-            if (prop == null) { Debug.LogError($"BBQ King: no field '{field}' on {target.GetType().Name}"); return; }
-            prop.objectReferenceValue = value;
-            so.ApplyModifiedPropertiesWithoutUndo();
         }
     }
 }

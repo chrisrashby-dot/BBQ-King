@@ -33,6 +33,12 @@ namespace BBQKing.EditorTools
         // ----- UI frames (9-sliced)
         public const string UiPanelDark = Root + "UI/ui_panel_dark.png";
         public const string UiPanelPaper = Root + "UI/ui_panel_paper.png";
+        public const string UiSlot = Root + "UI/ui_slot.png";
+        public const string UiSlotSelected = Root + "UI/ui_slot_selected.png";
+
+        // ----- Tool icons (32 x 32, centre pivot), named after the section 8 tools list
+        public const string ToolGloves = Root + "Tools/tool_gloves.png";
+        public const string ToolTrashBag = Root + "Tools/tool_trash_bag.png";
 
         // ----- Objects (32 x 32; letter centre pivot, door bottom-centre pivot)
         public const string Letter = Root + "Objects/letter.png";
@@ -86,6 +92,11 @@ namespace BBQKing.EditorTools
 
             Frame(UiPanelDark, PanelDark, PanelEdge);
             Frame(UiPanelPaper, Paper, Grout);
+            Frame(UiSlot, PanelDark, PanelEdge);
+            Frame(UiSlotSelected, PanelEdge, Brass);
+
+            Tile(ToolGloves, DrawGloves);
+            Tile(ToolTrashBag, DrawTrashBag);
 
             Tile(Letter, DrawLetter);
             // The door's pivot is its bottom edge, where it meets the ground, so it Y-sorts in front
@@ -392,6 +403,44 @@ namespace BBQKing.EditorTools
             c.FillRect(21, 13, 2, 2, Brass);             // handle
             c.FillRect(3, 0, 26, 2, Step);               // step
             for (int i = 3; i < 29; i++) c.Set(i, 1, SidingLight);
+            return c;
+        }
+
+        // ------------------------------------------------------------------ tools
+
+        static readonly Color32 GloveMid = PixelCanvas.Hex("#d9a441");
+        static readonly Color32 GloveLight = PixelCanvas.Hex("#f0c868");
+        static readonly Color32 GloveDark = PixelCanvas.Hex("#a8782a");
+        static readonly Color32 BagMid = PixelCanvas.Hex("#3c4048");
+        static readonly Color32 BagLight = PixelCanvas.Hex("#5e646e");
+        static readonly Color32 BagDark = PixelCanvas.Hex("#262930");
+
+        /// <summary>A yellow work glove, fingers up, with a darker cuff.</summary>
+        static PixelCanvas DrawGloves()
+        {
+            var c = new PixelCanvas(32, 32);
+            c.FillRect(10, 4, 12, 5, GloveDark);                 // cuff
+            c.FillRect(10, 9, 12, 9, GloveMid);                  // palm
+            for (int f = 0; f < 4; f++) c.FillRect(10 + f * 3, 18, 2, 6 + (f == 1 || f == 2 ? 2 : 0), GloveMid); // fingers
+            c.FillRect(22, 10, 3, 6, GloveMid);                  // thumb
+            for (int j = 9; j < 18; j++) c.Set(10, j, GloveLight); // lit from the top left
+            for (int f = 0; f < 4; f++) c.Set(10 + f * 3, 22, GloveLight);
+            AddOutline(c, Outline);
+            return c;
+        }
+
+        /// <summary>A full black trash bag with a tied top.</summary>
+        static PixelCanvas DrawTrashBag()
+        {
+            var c = new PixelCanvas(32, 32);
+            c.FillRect(8, 3, 16, 14, BagMid);                    // body
+            c.FillRect(10, 17, 12, 3, BagMid);                   // shoulders
+            c.FillRect(14, 20, 4, 3, BagDark);                   // neck
+            c.FillRect(12, 23, 3, 3, BagMid); c.FillRect(17, 23, 3, 3, BagMid); // tie ears
+            for (int j = 5; j < 16; j++) c.Set(10, j, BagLight); // shine on the top left
+            c.Set(11, 16, BagLight); c.Set(12, 17, BagLight);
+            for (int i = 9; i < 23; i++) c.Set(i, 3, BagDark);   // shadow along the bottom
+            AddOutline(c, Outline);
             return c;
         }
 
