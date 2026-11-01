@@ -34,7 +34,7 @@ namespace BBQKing.EditorTools
         public const string UiPanelDark = Root + "UI/ui_panel_dark.png";
         public const string UiPanelPaper = Root + "UI/ui_panel_paper.png";
 
-        // ----- Objects (32 x 32, centre pivot)
+        // ----- Objects (32 x 32; letter centre pivot, door bottom-centre pivot)
         public const string Letter = Root + "Objects/letter.png";
         public const string BackDoor = Root + "Objects/house_back_door.png";
 
@@ -88,7 +88,9 @@ namespace BBQKing.EditorTools
             Frame(UiPanelPaper, Paper, Grout);
 
             Tile(Letter, DrawLetter);
-            Tile(BackDoor, DrawBackDoor);
+            // The door's pivot is its bottom edge, where it meets the ground, so it Y-sorts in front
+            // of the wall tile it hangs on but behind the player standing below it.
+            Tile(BackDoor, DrawBackDoor, SpriteAlignment.BottomCenter);
 
             foreach (Facing facing in System.Enum.GetValues(typeof(Facing)))
                 for (int frame = 0; frame < WalkFrames; frame++)
@@ -99,10 +101,10 @@ namespace BBQKing.EditorTools
                 }
         }
 
-        static void Tile(string path, System.Func<PixelCanvas> draw)
+        static void Tile(string path, System.Func<PixelCanvas> draw, SpriteAlignment pivot = SpriteAlignment.Center)
         {
             if (PlaceholderAssetWriter.SavePngIfMissing(path, draw()))
-                PlaceholderAssetWriter.ConfigureSprite(path, SpriteAlignment.Center);
+                PlaceholderAssetWriter.ConfigureSprite(path, pivot);
         }
 
         /// <summary>A 12x12 UI frame with a 4 pixel border, stretched with 9-slicing.</summary>

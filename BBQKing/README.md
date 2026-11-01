@@ -101,7 +101,8 @@ Overwrite a PNG in `Assets/_Project/Art/Placeholder/` with your own file of the 
 | `Tiles/ground_*.png`, `wall_house.png` | 32 x 32 | Centre | One tile each |
 | `Tiles/fence_intact.png`, `fence_broken.png` | 32 x 32 | Centre | Transparent background so the grass shows through |
 | `Characters/player_walk_<direction>_<0-3>.png` | 32 x 32 | Bottom centre | 4 walk frames per direction; frame 0 is also the standing pose |
-| `Objects/letter.png`, `house_back_door.png` | 32 x 32 | Centre | |
+| `Objects/letter.png` | 32 x 32 | Centre | |
+| `Objects/house_back_door.png` | 32 x 32 | Bottom centre | Transparent around the door so the wall shows through. The bottom pivot makes it sort in front of the wall and behind the player |
 | `UI/ui_panel_dark.png`, `ui_panel_paper.png` | 12 x 12 | Centre | 9-sliced, 4 px border (set in the Sprite Editor) |
 
 New images dropped anywhere under `Assets/_Project/Art/` get the pixel-art import settings automatically (`Editor/PixelArtImportSettings.cs`).

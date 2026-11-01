@@ -114,11 +114,13 @@ namespace BBQKing.EditorTools
                 colliderSize: new Vector2(0.6f, 0.4f), colliderOffset: Vector2.zero);
             PlacePrefab(letterPrefab, BackyardLayout.LetterSpot);
 
-            // The door's trigger sits along its bottom edge, where the player stands to use it.
+            // The door stands on the bottom edge of its wall tile (its pivot is bottom centre), so
+            // Y-sorting draws it in front of the wall but behind the player, whose feet are always
+            // below the wall. Its trigger sits along that bottom edge, where the player stands to use it.
             var doorPrefab = LoadOrCreateMessagePrefab(BackDoorPrefabPath, "Back Door", PlaceholderArt.BackDoor,
-                StandingOrder + 1, "Open the back door", doorMessage, messageChannel,
-                colliderSize: new Vector2(0.8f, 0.4f), colliderOffset: new Vector2(0f, -0.4f));
-            PlacePrefab(doorPrefab, (Vector2)BackyardLayout.BackDoor + new Vector2(0.5f, 0.5f));
+                StandingOrder, "Open the back door", doorMessage, messageChannel,
+                colliderSize: new Vector2(0.8f, 0.4f), colliderOffset: new Vector2(0f, 0.1f));
+            PlacePrefab(doorPrefab, (Vector2)BackyardLayout.BackDoor + new Vector2(0.5f, 0f));
             SetRef(cam.GetComponent<CameraFollow>(), "target", player.transform);
             cam.transform.position = new Vector3(player.transform.position.x, player.transform.position.y, -10f);
 
@@ -261,6 +263,8 @@ namespace BBQKing.EditorTools
             var renderer = go.AddComponent<SpriteRenderer>();
             renderer.sprite = LoadSprite(spritePath);
             renderer.sortingOrder = sortingOrder;
+            // Sort by the pivot, like the player, so a sprite with a bottom pivot sorts by where it meets the ground.
+            renderer.spriteSortPoint = SpriteSortPoint.Pivot;
 
             // A trigger collider: the interactor can find it, but the player can walk over it.
             var trigger = go.AddComponent<BoxCollider2D>();
