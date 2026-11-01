@@ -31,11 +31,13 @@ Done (one commit per step):
 
 Checked in batch mode: everything compiles with no errors or warnings from our code; 14 EditMode and 5 PlayMode tests pass; screenshots at all three resolutions look as expected. **Not yet checked by hand in the Editor.**
 
-Next: play-test M1 in the Editor (see the README), choose the reference resolution, then start **M2 Restoration** (tile clearing with tools, Job 1, the jobs board).
+Later the same day: fixed the back door drawing over the player (Y-sorting), and the developer chose **960x540** as the reference resolution.
+
+Next: finish play-testing M1 in the Editor (see the README), then start **M2 Restoration** (tile clearing with tools, Job 1, the jobs board).
 
 ## Questions for the developer
 
-- **Reference resolution:** after trying the three options in `DisplayConfig`, which do you prefer? 960x540 is the default for now. If you confirm it, the "(proposed)" in design.md sections 7.1 and 9 can be dropped.
+- **Reference resolution (answered 1 Nov 2026):** 960x540 chosen after testing. Please update the master design document: drop "(proposed)" in sections 7.1 and 9, mark the decision log entry of 31 Oct 2026 as confirmed, and tick the resolution item in section 11. CLAUDE.md's technical rules also still say "(proposed)".
 - **Relative's name and the letter text:** still open in design.md section 11. The letter in `Data/Messages/RelativeLetter` has clearly marked placeholder text.
 - **Starting values for the player:** walking speed 3.5 tiles a second, walk animation 8 frames a second, reach 0.5 tiles ahead with a 0.6 tile radius. design.md does not set these; they are in `PlayerConfig` to tune.
 - **Small additions beyond the plan, for your information (no design change):**

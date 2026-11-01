@@ -26,17 +26,17 @@ Try reading the letter on the patio and using the back door. The other actions i
 
 ## Comparing resolutions
 
-design.md proposes a 960x540 reference resolution and asks for 640x360 and 1280x720 to be tried too (section 11). To switch:
+The game uses a **960x540** reference resolution, chosen after testing on 1 Nov 2026. 640x360 and 1280x720 stay available for comparison and testing. To switch:
 
 1. In the Project window, select `Assets/_Project/Data/Settings/DisplayConfig`.
 2. In the Inspector, change **Reference Resolution**. This works during Play mode, so you can walk around and compare.
 
-Changes to this asset are **kept** when you press Stop, so set it back to your choice before you finish.
+Changes to this asset are **kept** when you press Stop, so set it back to 960 x 540 before you finish.
 
 | Reference | Tiles visible | On a 1920x1080 window | On 2560x1440 |
 | --- | --- | --- | --- |
 | 640x360 | 20 x 11 | x3, fills the screen | x4, fills the screen |
-| 960x540 (proposed) | 30 x 17 | x2, fills the screen | x2, black border |
+| 960x540 (chosen) | 30 x 17 | x2, fills the screen | x2, black border |
 | 1280x720 | 40 x 22 | x1, black border | x2, fills the screen |
 
 The game only ever scales by whole numbers so pixels stay sharp. When the window is not an exact multiple, you get a border instead of blurry pixels.

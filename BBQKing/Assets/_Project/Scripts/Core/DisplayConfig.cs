@@ -2,12 +2,15 @@ using UnityEngine;
 
 namespace BBQKing.Core
 {
-    /// <summary>The reference resolutions we are trying out (design.md section 11, open questions).</summary>
+    /// <summary>
+    /// Reference resolutions. 960 x 540 was chosen after testing (1 Nov 2026); the other two stay
+    /// for comparison and testing only.
+    /// </summary>
     public enum ReferenceResolution
     {
-        [InspectorName("640 x 360 (20 x 11 tiles)")] Small640x360,
-        [InspectorName("960 x 540 (30 x 17 tiles, proposed)")] Medium960x540,
-        [InspectorName("1280 x 720 (40 x 22 tiles)")] Large1280x720,
+        [InspectorName("640 x 360 (20 x 11 tiles, testing only)")] Small640x360,
+        [InspectorName("960 x 540 (30 x 17 tiles, chosen)")] Medium960x540,
+        [InspectorName("1280 x 720 (40 x 22 tiles, testing only)")] Large1280x720,
     }
 
     /// <summary>
@@ -24,7 +27,7 @@ namespace BBQKing.Core
     [CreateAssetMenu(fileName = "DisplayConfig", menuName = "BBQ King/Display Config")]
     public class DisplayConfig : ScriptableObject
     {
-        [Tooltip("The size of the virtual screen in art pixels. 960 x 540 is the proposal in design.md.")]
+        [Tooltip("The size of the virtual screen in art pixels. 960 x 540 is the chosen setting; the others are for testing.")]
         [SerializeField] ReferenceResolution referenceResolution = ReferenceResolution.Medium960x540;
 
         public ReferenceResolution Resolution
