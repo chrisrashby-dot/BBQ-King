@@ -33,10 +33,19 @@ Checked in batch mode: everything compiles with no errors or warnings from our c
 
 Later the same day: fixed the back door drawing over the player (Y-sorting), and the developer chose **960x540** as the reference resolution. All tests also pass in the Editor. Hand play-test: walking speed, camera and text readability are fine. The player could not get behind the bottom fence because each fence tile blocked its whole square; fences across the screen now block only a strip at their base (side fences still block the whole tile), with a new PlayMode test.
 
-Next: finish play-testing M1 in the Editor (see the README), then start **M2 Restoration** (tile clearing with tools, Job 1, the jobs board).
+M1 play-tested by hand and marked done.
+
+Next: **M2 Restoration** (tile clearing with tools, Job 1, the jobs board).
+
+M2 decisions from the developer (1 Nov 2026):
+- **Gloves and bin bag are two separate tools:** gloves pull weeds, the bin bag picks up rubbish. This changes design.md section 5.2 (see questions below).
+- **Targeting:** the tool works on the tile under the mouse when it is within reach, otherwise on the tile the player faces, with a highlight.
+- **Job complete:** when every tile in the job is cleared (the 95% rule stays for close-up scrubbing).
+- **Weekend counter:** waits for M4.
 
 ## Questions for the developer
 
+- **Design change to record (1 Nov 2026):** please update the master design document, section 5.2 Tools, so gloves and bin bags are listed as two separate tools ("gloves, bin bags, rake, shears, scraper, wire brush and hose"). Section 8 already lists them separately.
 - **Reference resolution (answered 1 Nov 2026):** 960x540 chosen after testing. design.md and CLAUDE.md are both updated.
 - **Relative's name and the letter text:** still open in design.md section 11. The letter in `Data/Messages/RelativeLetter` has clearly marked placeholder text.
 - **Starting values for the player:** walking speed 3.5 tiles a second, walk animation 8 frames a second, reach 0.5 tiles ahead with a 0.6 tile radius. design.md does not set these; they are in `PlayerConfig` to tune.
