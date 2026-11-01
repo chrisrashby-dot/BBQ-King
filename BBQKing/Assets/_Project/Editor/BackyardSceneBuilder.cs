@@ -45,6 +45,7 @@ namespace BBQKing.EditorTools
         // Y-sorted together at order 0 (see ConfigureRenderer).
         const int GroundOrder = -100;
         const int OvergrowthOrder = -90;
+        public const int HighlightOrder = -85;  // the tool's target tile, over weeds and rubbish
         const int GroundItemOrder = -80;  // flat things lying on the ground, such as the letter
         const int StandingOrder = 0;
 
@@ -109,7 +110,7 @@ namespace BBQKing.EditorTools
             SetRef(interactor, "movement", player);
             SetRef(interactor, "config", playerConfig);
             SetRef(interactor, "promptChannel", promptChannel);
-            RestorationBuilder.AddToPlayer(player.gameObject, input, restoration);
+            RestorationBuilder.AddToPlayer(player, input, playerConfig, restoration);
 
             // ---------- Interactable objects (prefabs placed in the scene)
             var letterPrefab = LoadOrCreateMessagePrefab(LetterPrefabPath, "Letter", PlaceholderArt.Letter,

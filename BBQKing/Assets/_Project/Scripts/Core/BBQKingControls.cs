@@ -125,6 +125,16 @@ namespace BBQKing.Core
                     ""priority"": 0
                 },
                 {
+                    ""name"": ""Aim"",
+                    ""type"": ""PassThrough"",
+                    ""id"": ""966bb6bc-24db-4ee1-971c-f8594f1489a4"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
                     ""name"": ""Cancel"",
                     ""type"": ""Button"",
                     ""id"": ""adaea4a9-20f0-43e4-a3e8-1468693b113d"",
@@ -359,6 +369,17 @@ namespace BBQKing.Core
                     ""processors"": """",
                     ""groups"": ""Gamepad"",
                     ""action"": ""UseTool"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""6ab6c93d-8074-422d-97e0-8bcf8ac0803a"",
+                    ""path"": ""<Mouse>/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Aim"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -676,6 +697,17 @@ namespace BBQKing.Core
                 },
                 {
                     ""name"": """",
+                    ""id"": ""3844ccc2-009b-4c17-a2c9-871e092514bc"",
+                    ""path"": ""<Keyboard>/tab"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Cancel"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
                     ""id"": ""6dbadd44-bd70-4687-b8b5-042494c2a550"",
                     ""path"": ""<Gamepad>/buttonEast"",
                     ""interactions"": """",
@@ -745,6 +777,7 @@ namespace BBQKing.Core
             m_Player_Move = m_Player.FindAction("Move", throwIfNotFound: true);
             m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
             m_Player_UseTool = m_Player.FindAction("UseTool", throwIfNotFound: true);
+            m_Player_Aim = m_Player.FindAction("Aim", throwIfNotFound: true);
             m_Player_Cancel = m_Player.FindAction("Cancel", throwIfNotFound: true);
             m_Player_SelectToolSlot = m_Player.FindAction("SelectToolSlot", throwIfNotFound: true);
             m_Player_CycleTool = m_Player.FindAction("CycleTool", throwIfNotFound: true);
@@ -841,6 +874,7 @@ namespace BBQKing.Core
         private readonly InputAction m_Player_Move;
         private readonly InputAction m_Player_Interact;
         private readonly InputAction m_Player_UseTool;
+        private readonly InputAction m_Player_Aim;
         private readonly InputAction m_Player_Cancel;
         private readonly InputAction m_Player_SelectToolSlot;
         private readonly InputAction m_Player_CycleTool;
@@ -870,6 +904,10 @@ namespace BBQKing.Core
             /// Provides access to the underlying input action "Player/UseTool".
             /// </summary>
             public InputAction @UseTool => m_Wrapper.m_Player_UseTool;
+            /// <summary>
+            /// Provides access to the underlying input action "Player/Aim".
+            /// </summary>
+            public InputAction @Aim => m_Wrapper.m_Player_Aim;
             /// <summary>
             /// Provides access to the underlying input action "Player/Cancel".
             /// </summary>
@@ -929,6 +967,9 @@ namespace BBQKing.Core
                 @UseTool.started += instance.OnUseTool;
                 @UseTool.performed += instance.OnUseTool;
                 @UseTool.canceled += instance.OnUseTool;
+                @Aim.started += instance.OnAim;
+                @Aim.performed += instance.OnAim;
+                @Aim.canceled += instance.OnAim;
                 @Cancel.started += instance.OnCancel;
                 @Cancel.performed += instance.OnCancel;
                 @Cancel.canceled += instance.OnCancel;
@@ -967,6 +1008,9 @@ namespace BBQKing.Core
                 @UseTool.started -= instance.OnUseTool;
                 @UseTool.performed -= instance.OnUseTool;
                 @UseTool.canceled -= instance.OnUseTool;
+                @Aim.started -= instance.OnAim;
+                @Aim.performed -= instance.OnAim;
+                @Aim.canceled -= instance.OnAim;
                 @Cancel.started -= instance.OnCancel;
                 @Cancel.performed -= instance.OnCancel;
                 @Cancel.canceled -= instance.OnCancel;
@@ -1201,6 +1245,13 @@ namespace BBQKing.Core
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnUseTool(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Aim" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnAim(InputAction.CallbackContext context);
             /// <summary>
             /// Method invoked when associated input action "Cancel" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
             /// </summary>

@@ -35,6 +35,7 @@ namespace BBQKing.EditorTools
         public const string UiPanelPaper = Root + "UI/ui_panel_paper.png";
         public const string UiSlot = Root + "UI/ui_slot.png";
         public const string UiSlotSelected = Root + "UI/ui_slot_selected.png";
+        public const string TileHighlight = Root + "UI/ui_tile_highlight.png";   // 32 x 32, drawn in the world
 
         // ----- Tool icons (32 x 32, centre pivot), named after the section 8 tools list
         public const string ToolGloves = Root + "Tools/tool_gloves.png";
@@ -94,6 +95,7 @@ namespace BBQKing.EditorTools
             Frame(UiPanelPaper, Paper, Grout);
             Frame(UiSlot, PanelDark, PanelEdge);
             Frame(UiSlotSelected, PanelEdge, Brass);
+            Tile(TileHighlight, DrawTileHighlight);
 
             Tile(ToolGloves, DrawGloves);
             Tile(ToolTrashBag, DrawTrashBag);
@@ -403,6 +405,25 @@ namespace BBQKing.EditorTools
             c.FillRect(21, 13, 2, 2, Brass);             // handle
             c.FillRect(3, 0, 26, 2, Step);               // step
             for (int i = 3; i < 29; i++) c.Set(i, 1, SidingLight);
+            return c;
+        }
+
+        // ------------------------------------------------------------------ UI in the world
+
+        /// <summary>Corner brackets and a faint wash marking the tile a tool will work on.</summary>
+        static PixelCanvas DrawTileHighlight()
+        {
+            var c = new PixelCanvas(32, 32);
+            c.FillRect(1, 1, 30, 30, new Color32(0xff, 0xf4, 0xd6, 0x30));
+            var edge = PixelCanvas.Hex("#fff4d6");
+            const int len = 8;
+            foreach (int x in new[] { 0, 30 })
+                foreach (int y in new[] { 0, 30 })
+                {
+                    int hx = x == 0 ? 0 : 32 - len, vy = y == 0 ? 0 : 32 - len;
+                    c.FillRect(hx, y, len, 2, edge);   // horizontal arm
+                    c.FillRect(x, vy, 2, len, edge);   // vertical arm
+                }
             return c;
         }
 

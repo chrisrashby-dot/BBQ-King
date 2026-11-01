@@ -52,6 +52,15 @@ namespace BBQKing.Core
         /// <summary>True while the use-tool button (left mouse) is held.</summary>
         public bool UseToolHeld { get; private set; }
 
+        /// <summary>
+        /// Where the mouse pointer is, in screen pixels. Only meaningful when <see cref="HasAim"/>
+        /// is true; with a gamepad there is no pointer and tools aim where the player faces.
+        /// </summary>
+        public Vector2 AimScreenPosition { get; private set; }
+
+        /// <summary>True once the mouse has reported a position.</summary>
+        public bool HasAim { get; private set; }
+
         /// <summary>True while the Player map is on (no panel open).</summary>
         public bool IsPlayerInputEnabled => controls != null && controls.Player.enabled;
 
@@ -142,6 +151,12 @@ namespace BBQKing.Core
         {
             if (context.performed) UseToolHeld = true;
             else if (context.canceled) UseToolHeld = false;
+        }
+
+        public void OnAim(InputAction.CallbackContext context)
+        {
+            AimScreenPosition = context.ReadValue<Vector2>();
+            HasAim = true;
         }
 
         public void OnCancel(InputAction.CallbackContext context)

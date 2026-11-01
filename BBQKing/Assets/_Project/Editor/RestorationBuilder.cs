@@ -66,13 +66,31 @@ namespace BBQKing.EditorTools
             return tool;
         }
 
-        /// <summary>Gives the player a tool belt (the tool in hand, chosen with 1 to 6 or the mouse wheel).</summary>
-        public static void AddToPlayer(GameObject player, InputReader input, Assets a)
+        /// <summary>
+        /// Gives the player a tool belt (the tool in hand, chosen with 1 to 6 or the mouse wheel)
+        /// and a tool user, which aims the tool at a tile and shows a highlight there.
+        /// </summary>
+        public static void AddToPlayer(PlayerMovement player, InputReader input, PlayerConfig config, Assets a)
         {
-            var belt = player.AddComponent<ToolBelt>();
+            var go = player.gameObject;
+            var belt = go.AddComponent<ToolBelt>();
             SetRef(belt, "input", input);
             SetRef(belt, "tools", a.tools);
             SetRef(belt, "selectedSlotChannel", a.selectedSlotChannel);
+
+            // The highlight is its own object rather than a child of the player, because it sits on
+            // the grid and should not move with the player between tiles.
+            var highlight = new GameObject("Tool Highlight").AddComponent<SpriteRenderer>();
+            highlight.sprite = LoadSprite(PlaceholderArt.TileHighlight);
+            highlight.sortingOrder = BackyardSceneBuilder.HighlightOrder;
+            highlight.enabled = false;
+
+            var user = go.AddComponent<ToolUser>();
+            SetRef(user, "input", input);
+            SetRef(user, "movement", player);
+            SetRef(user, "config", config);
+            SetRef(user, "toolBelt", belt);
+            SetRef(user, "highlight", highlight);
         }
 
         // Toolbar layout in art pixels: six 36 x 36 slots with a 2 pixel gap, along the bottom.
