@@ -34,6 +34,10 @@ namespace BBQKing.EditorTools
         public const string UiPanelDark = Root + "UI/ui_panel_dark.png";
         public const string UiPanelPaper = Root + "UI/ui_panel_paper.png";
 
+        // ----- Objects (32 x 32, centre pivot)
+        public const string Letter = Root + "Objects/letter.png";
+        public const string BackDoor = Root + "Objects/house_back_door.png";
+
         // ----- Player walk frames (32 x 32, bottom-centre pivot so the feet sit on the position)
         public const int WalkFrames = 4;
 
@@ -82,6 +86,9 @@ namespace BBQKing.EditorTools
 
             Frame(UiPanelDark, PanelDark, PanelEdge);
             Frame(UiPanelPaper, Paper, Grout);
+
+            Tile(Letter, DrawLetter);
+            Tile(BackDoor, DrawBackDoor);
 
             foreach (Facing facing in System.Enum.GetValues(typeof(Facing)))
                 for (int frame = 0; frame < WalkFrames; frame++)
@@ -337,6 +344,53 @@ namespace BBQKing.EditorTools
                 for (int x = 0; x < c.Width; x++)
                     if (!IsSolid(x, y) && (IsSolid(x - 1, y) || IsSolid(x + 1, y) || IsSolid(x, y - 1) || IsSolid(x, y + 1)))
                         c.Set(x, y, colour);
+        }
+
+        // ------------------------------------------------------------------ objects
+
+        static readonly Color32 SealRed = PixelCanvas.Hex("#b83a2e");
+        static readonly Color32 DoorRed = PixelCanvas.Hex("#8c3b2f");
+        static readonly Color32 DoorRedLight = PixelCanvas.Hex("#a84a3c");
+        static readonly Color32 DoorRedDark = PixelCanvas.Hex("#6b2a21");
+        static readonly Color32 Glass = PixelCanvas.Hex("#9cc4d4");
+        static readonly Color32 GlassLight = PixelCanvas.Hex("#d4ecf2");
+        static readonly Color32 Brass = PixelCanvas.Hex("#e0c060");
+        static readonly Color32 Step = PixelCanvas.Hex("#9a9184");
+
+        /// <summary>The relative's letter: a cream envelope with a red seal, lying on the ground.</summary>
+        static PixelCanvas DrawLetter()
+        {
+            var c = new PixelCanvas(32, 32);
+            int x0 = 7, y0 = 9, w = 18, h = 12;
+            c.FillRect(x0, y0, w, h, Paper);
+            // The flap: a V from the top corners to the middle.
+            for (int i = 0; i < w / 2; i++)
+            {
+                c.Set(x0 + i, y0 + h - 1 - i / 2, Grout);
+                c.Set(x0 + w - 1 - i, y0 + h - 1 - i / 2, Grout);
+            }
+            c.FillRect(x0 + w / 2 - 1, y0 + h - 6, 2, 2, SealRed);
+            for (int i = 1; i < w - 1; i++) c.Set(x0 + i, y0, SlabDark); // shadow along the bottom edge
+            AddOutline(c, Grout);
+            return c;
+        }
+
+        /// <summary>The back door, drawn over a house wall tile: red panelled door with a small window.</summary>
+        static PixelCanvas DrawBackDoor()
+        {
+            var c = new PixelCanvas(32, 32);
+            c.FillRect(5, 2, 22, 30, WoodDark);          // frame
+            c.FillRect(7, 2, 18, 28, DoorRed);           // door
+            for (int j = 2; j < 30; j++) { c.Set(7, j, DoorRedLight); c.Set(24, j, DoorRedDark); }
+            c.FillRect(10, 19, 12, 8, WoodDark);         // window frame
+            c.FillRect(11, 20, 4, 3, Glass); c.FillRect(17, 20, 4, 3, Glass);
+            c.FillRect(11, 24, 4, 2, Glass); c.FillRect(17, 24, 4, 2, Glass);
+            c.Set(11, 22, GlassLight); c.Set(17, 22, GlassLight); c.Set(11, 25, GlassLight); c.Set(17, 25, GlassLight);
+            c.Outline(10, 5, 12, 11, DoorRedDark);       // lower panel
+            c.FillRect(21, 13, 2, 2, Brass);             // handle
+            c.FillRect(3, 0, 26, 2, Step);               // step
+            for (int i = 3; i < 29; i++) c.Set(i, 1, SidingLight);
+            return c;
         }
 
         // ------------------------------------------------------------------ house

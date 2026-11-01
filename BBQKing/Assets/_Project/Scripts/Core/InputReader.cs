@@ -52,6 +52,21 @@ namespace BBQKing.Core
         /// <summary>True while the use-tool button (left mouse) is held.</summary>
         public bool UseToolHeld { get; private set; }
 
+        /// <summary>True while the Player map is on (no panel open).</summary>
+        public bool IsPlayerInputEnabled => controls != null && controls.Player.enabled;
+
+        /// <summary>
+        /// The key shown in prompts for Interact, such as "E". Read from the input asset, so the
+        /// prompt stays right if the binding changes. Keyboard only for now.
+        /// </summary>
+        public string InteractKeyLabel => interactKeyLabel ??=
+            Controls.Player.Interact.GetBindingDisplayString(InputBinding.MaskByGroup(KeyboardMouseGroup));
+
+        string interactKeyLabel; // worked out once, then reused every frame
+
+        // The binding group (control scheme) name used in BBQKingControls.inputactions.
+        const string KeyboardMouseGroup = "Keyboard and Mouse";
+
         BBQKingControls controls;
 
         /// <summary>

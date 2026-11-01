@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a2347231a1fc55478b5e3df693f9a83, type: 3}
+  m_Name: RelativeLetter
+  m_EditorClassIdentifier: BBQKing::BBQKing.Core.MessageData
+  title: A letter for you
+  body: '[Placeholder: the relative''s name and the final wording are still to be decided.]
+
+
+    If you are reading this, the house is yours now. I am sorry I let the backyard get away from me. The old grill on the patio still has a few good cookouts left in it, and so do you.
+
+
+    Start with the patio. Everything else follows.
+
+
+    With love,
+
+    [Name]'

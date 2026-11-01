@@ -31,11 +31,20 @@ namespace BBQKing.EditorTools
         const string DisplayConfigPath = "Assets/_Project/Data/Settings/DisplayConfig.asset";
         const string PlayerConfigPath = "Assets/_Project/Data/Player/PlayerConfig.asset";
         const string PlayerSpritesPath = "Assets/_Project/Data/Characters/PlayerSprites.asset";
+        const string PromptChannelPath = "Assets/_Project/Data/Events/InteractionPromptChannel.asset";
+        const string MessageChannelPath = "Assets/_Project/Data/Events/ShowMessageChannel.asset";
+        const string LetterMessagePath = "Assets/_Project/Data/Messages/RelativeLetter.asset";
+        const string BackDoorMessagePath = "Assets/_Project/Data/Messages/BackDoor.asset";
+
+        // Prefabs for interactable objects (created if missing, so your edits to them are kept).
+        const string LetterPrefabPath = "Assets/_Project/Prefabs/Letter.prefab";
+        const string BackDoorPrefabPath = "Assets/_Project/Prefabs/BackDoor.prefab";
 
         // Sorting orders: flat ground layers draw first, then everything that stands up is
         // Y-sorted together at order 0 (see ConfigureRenderer).
         const int GroundOrder = -100;
         const int OvergrowthOrder = -90;
+        const int GroundItemOrder = -80;  // flat things lying on the ground, such as the letter
         const int StandingOrder = 0;
 
         static readonly Color32 SkyColour = new Color32(0x24, 0x1c, 0x16, 0xff); // shown outside the map
@@ -67,6 +76,10 @@ namespace BBQKing.EditorTools
             var display = PlaceholderAssetWriter.LoadOrCreateAsset<DisplayConfig>(DisplayConfigPath);
             var playerConfig = PlaceholderAssetWriter.LoadOrCreateAsset<PlayerConfig>(PlayerConfigPath);
             var playerSprites = LoadPlayerSprites();
+            var promptChannel = PlaceholderAssetWriter.LoadOrCreateAsset<StringEventChannel>(PromptChannelPath);
+            var messageChannel = PlaceholderAssetWriter.LoadOrCreateAsset<MessageEventChannel>(MessageChannelPath);
+            var letterMessage = LoadOrCreateMessage(LetterMessagePath, LetterTitle, LetterBody);
+            var doorMessage = LoadOrCreateMessage(BackDoorMessagePath, BackDoorTitle, BackDoorBody);
 
             // ---------- Game: scene-wide helpers
             var gameGo = new GameObject("Game");
@@ -85,10 +98,27 @@ namespace BBQKing.EditorTools
             var cam = BuildCamera(display, map.ground);
 
             // ---------- UI
-            BuildUI(display);
+            BuildUI(display, input, promptChannel, messageChannel);
 
             // ---------- Player
             var player = BuildPlayer(input, playerConfig, playerSprites);
+            var interactor = player.gameObject.AddComponent<PlayerInteractor>();
+            SetRef(interactor, "input", input);
+            SetRef(interactor, "movement", player);
+            SetRef(interactor, "config", playerConfig);
+            SetRef(interactor, "promptChannel", promptChannel);
+
+            // ---------- Interactable objects (prefabs placed in the scene)
+            var letterPrefab = LoadOrCreateMessagePrefab(LetterPrefabPath, "Letter", PlaceholderArt.Letter,
+                GroundItemOrder, "Read the letter", letterMessage, messageChannel,
+                colliderSize: new Vector2(0.6f, 0.4f), colliderOffset: Vector2.zero);
+            PlacePrefab(letterPrefab, BackyardLayout.LetterSpot);
+
+            // The door's trigger sits along its bottom edge, where the player stands to use it.
+            var doorPrefab = LoadOrCreateMessagePrefab(BackDoorPrefabPath, "Back Door", PlaceholderArt.BackDoor,
+                StandingOrder + 1, "Open the back door", doorMessage, messageChannel,
+                colliderSize: new Vector2(0.8f, 0.4f), colliderOffset: new Vector2(0f, -0.4f));
+            PlacePrefab(doorPrefab, (Vector2)BackyardLayout.BackDoor + new Vector2(0.5f, 0.5f));
             SetRef(cam.GetComponent<CameraFollow>(), "target", player.transform);
             cam.transform.position = new Vector3(player.transform.position.x, player.transform.position.y, -10f);
 
@@ -184,6 +214,75 @@ namespace BBQKing.EditorTools
             var frames = new Sprite[PlaceholderArt.WalkFrames];
             for (int i = 0; i < frames.Length; i++) frames[i] = LoadSprite(PlaceholderArt.PlayerFrame(facing, i));
             return frames;
+        }
+
+        // ------------------------------------------------------------------ interactables
+
+        // Placeholder text. The relative's name is still an open question (design.md section 11),
+        // so it is marked clearly for replacing. Edit the text in Data/Messages, not here: this is
+        // only used when the asset is first created.
+        const string LetterTitle = "A letter for you";
+        const string LetterBody =
+            "[Placeholder: the relative's name and the final wording are still to be decided.]\n\n" +
+            "If you are reading this, the house is yours now. I am sorry I let the backyard get away from me. " +
+            "The old grill on the patio still has a few good cookouts left in it, and so do you.\n\n" +
+            "Start with the patio. Everything else follows.\n\n" +
+            "With love,\n[Name]";
+
+        const string BackDoorTitle = "The back door";
+        const string BackDoorBody =
+            "[Placeholder] The kitchen is through here. Going inside to prep food arrives in a later milestone.";
+
+        static MessageData LoadOrCreateMessage(string path, string title, string body)
+        {
+            bool isNew = AssetDatabase.LoadAssetAtPath<MessageData>(path) == null;
+            var message = PlaceholderAssetWriter.LoadOrCreateAsset<MessageData>(path);
+            if (isNew)
+            {
+                message.title = title;
+                message.body = body;
+                EditorUtility.SetDirty(message);
+            }
+            return message;
+        }
+
+        /// <summary>
+        /// Unity concept: a prefab is a saved, reusable object. Every copy in a scene links back to
+        /// the prefab file, so changing the prefab changes all of them. Interactable objects are
+        /// prefabs (CLAUDE.md) so they can be dropped into any scene.
+        /// </summary>
+        static GameObject LoadOrCreateMessagePrefab(string path, string name, string spritePath, int sortingOrder,
+            string prompt, MessageData message, MessageEventChannel channel, Vector2 colliderSize, Vector2 colliderOffset)
+        {
+            var existing = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            if (existing != null) return existing;
+
+            var go = new GameObject(name);
+            var renderer = go.AddComponent<SpriteRenderer>();
+            renderer.sprite = LoadSprite(spritePath);
+            renderer.sortingOrder = sortingOrder;
+
+            // A trigger collider: the interactor can find it, but the player can walk over it.
+            var trigger = go.AddComponent<BoxCollider2D>();
+            trigger.isTrigger = true;
+            trigger.size = colliderSize;
+            trigger.offset = colliderOffset;
+
+            var interactable = go.AddComponent<MessageInteractable>();
+            SetString(interactable, "prompt", prompt);
+            SetRef(interactable, "message", message);
+            SetRef(interactable, "showMessageChannel", channel);
+
+            PlaceholderAssetWriter.EnsureFolder(path);
+            var prefab = PrefabUtility.SaveAsPrefabAsset(go, path);
+            Object.DestroyImmediate(go);
+            return prefab;
+        }
+
+        static void PlacePrefab(GameObject prefab, Vector2 position)
+        {
+            var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            instance.transform.position = position;
         }
 
         // ------------------------------------------------------------------ map
@@ -317,14 +416,63 @@ namespace BBQKing.EditorTools
 
         // ------------------------------------------------------------------ UI
 
-        static Canvas BuildUI(DisplayConfig display)
+        static readonly Color32 LightText = new Color32(0xf6, 0xec, 0xd6, 0xff);
+        static readonly Color32 InkText = new Color32(0x3a, 0x2a, 0x20, 0xff);
+
+        // UI sizes are in art pixels at the reference resolution; the canvas scaler multiplies them up.
+        static Canvas BuildUI(DisplayConfig display, InputReader input, StringEventChannel promptChannel,
+            MessageEventChannel messageChannel)
         {
             var canvasGo = new GameObject("UI");
             var canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.pixelPerfect = true;
             SetRef(canvasGo.AddComponent<PixelCanvasScaler>(), "displayConfig", display);
+
+            // --- Interaction prompt, bottom centre. The controller sits on a parent that stays
+            // active, because a disabled object stops listening for events.
+            var promptRoot = UiRoot(canvasGo.transform, "Interaction Prompt");
+            var promptPanel = UiImage(promptRoot, "Panel", PlaceholderArt.UiPanelDark);
+            Anchor(promptPanel.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 16f), new Vector2(180f, 22f));
+            var promptText = UiText(promptPanel.transform, "Label", "[E] Read the letter", 12, TextAnchor.MiddleCenter, LightText);
+            Stretch(promptText.rectTransform, 4, 2, 4, 2);
+            var prompt = promptRoot.gameObject.AddComponent<InteractionPromptUI>();
+            SetRef(prompt, "promptChannel", promptChannel);
+            SetRef(prompt, "panel", promptPanel.gameObject);
+            SetRef(prompt, "label", promptText);
+            promptPanel.gameObject.SetActive(false);
+
+            // --- Message panel (letters and notes), centred
+            var messageRoot = UiRoot(canvasGo.transform, "Message Panel");
+            var paper = UiImage(messageRoot, "Paper", PlaceholderArt.UiPanelPaper);
+            Anchor(paper.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(380f, 240f));
+            var title = UiText(paper.transform, "Title", "Title", 16, TextAnchor.UpperLeft, InkText);
+            title.fontStyle = FontStyle.Bold;
+            Stretch(title.rectTransform, 16, 200, 16, 14);
+            var body = UiText(paper.transform, "Body", "Body", 12, TextAnchor.UpperLeft, InkText);
+            body.horizontalOverflow = HorizontalWrapMode.Wrap;
+            body.lineSpacing = 1.1f;
+            Stretch(body.rectTransform, 16, 30, 16, 44);
+            var hint = UiText(paper.transform, "Close Hint", "[E] or [Esc] Close", 10, TextAnchor.LowerRight, InkText);
+            Stretch(hint.rectTransform, 16, 10, 16, 210);
+            var panel = messageRoot.gameObject.AddComponent<MessagePanelUI>();
+            SetRef(panel, "input", input);
+            SetRef(panel, "showMessageChannel", messageChannel);
+            SetRef(panel, "panel", paper.gameObject);
+            SetRef(panel, "titleLabel", title);
+            SetRef(panel, "bodyLabel", body);
+            paper.gameObject.SetActive(false);
+
             return canvas;
+        }
+
+        static RectTransform UiRoot(Transform parent, string name)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            Stretch(rt, 0, 0, 0, 0);
+            return rt;
         }
 
         static Font UiFont => Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -376,6 +524,13 @@ namespace BBQKing.EditorTools
             var s = AssetDatabase.LoadAssetAtPath<Sprite>(path);
             if (s == null) Debug.LogError("BBQ King: missing sprite " + path);
             return s;
+        }
+
+        static void SetString(Object target, string field, string value)
+        {
+            var so = new SerializedObject(target);
+            so.FindProperty(field).stringValue = value;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         // Sets a private [SerializeField] field, exactly as dragging something into the Inspector would.
