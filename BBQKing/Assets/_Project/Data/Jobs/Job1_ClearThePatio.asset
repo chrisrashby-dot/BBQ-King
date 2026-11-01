@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29f504f8ef0cd0b4291438a16724f58f, type: 3}
+  m_Name: Job1_ClearThePatio
+  m_EditorClassIdentifier: BBQKing::BBQKing.Restoration.JobData
+  title: Clear the patio
+  description: Pull the weeds growing through the slabs and pick up the trash, tile by tile. Use the gloves for weeds and the trash bag for trash.
+  requires: []
+  areas:
+  - x: 10
+    y: 15
+    width: 12
+    height: 7
+  completionMessage: {fileID: 11400000, guid: 0897428f71f974a40bc47b994a5b7c96, type: 2}

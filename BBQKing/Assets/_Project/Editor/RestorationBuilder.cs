@@ -30,6 +30,9 @@ namespace BBQKing.EditorTools
         const string RestorationFolder = "Assets/_Project/Data/Restoration/";
         const string ClearingConfigPath = RestorationFolder + "ClearingConfig.asset";
         const string ClearableFolder = RestorationFolder + "Clearables/";
+        const string JobFolder = "Assets/_Project/Data/Jobs/";
+        const string JobBookPath = JobFolder + "JobBook.asset";
+        const string Job1MessagePath = "Assets/_Project/Data/Messages/Job1Done.asset";
 
         /// <summary>The assets the Restoration parts of the scene share.</summary>
         public struct Assets
@@ -43,6 +46,7 @@ namespace BBQKing.EditorTools
             public ClearingConfig clearing;
             public ClearableData[] weeds;   // small, medium, large
             public ClearableData[] trash;   // bag, cans, broken pot
+            public JobBook jobBook;
         }
 
         /// <summary>Loads or creates the tool and clearing assets. Call after the scene has been created.</summary>
@@ -81,6 +85,8 @@ namespace BBQKing.EditorTools
                 EditorUtility.SetDirty(a.clearing);
             }
 
+            a.jobBook = LoadOrCreateJobs();
+
             bool isNew = AssetDatabase.LoadAssetAtPath<ToolSet>(ToolSetPath) == null;
             a.tools = PlaceholderAssetWriter.LoadOrCreateAsset<ToolSet>(ToolSetPath);
             if (isNew)
@@ -90,6 +96,71 @@ namespace BBQKing.EditorTools
                 EditorUtility.SetDirty(a.tools);
             }
             return a;
+        }
+
+        // ------------------------------------------------------------------ jobs
+
+        /// <summary>
+        /// The five Act 1 jobs from design.md section 4.3, each needing the one before. Only Job 1
+        /// can be finished in M2; the others are listed on the jobs board so the player can see
+        /// what is coming. The events between jobs arrive in M4 and later.
+        /// </summary>
+        static JobBook LoadOrCreateJobs()
+        {
+            var job1 = LoadOrCreateJob("Job1_ClearThePatio", "Clear the patio",
+                "Pull the weeds growing through the slabs and pick up the trash, tile by tile. " +
+                "Use the gloves for weeds and the trash bag for trash.",
+                null, new[] { BackyardLayout.Patio }, LoadOrCreateJob1Message());
+            var job2 = LoadOrCreateJob("Job2_CleanTheKettleGrill", "Clean the kettle grill",
+                "Scrub years of grime off the old kettle grill on the patio.", job1);
+            var job3 = LoadOrCreateJob("Job3_ClearTheLawn", "Clear the lawn and fix the fence",
+                "Mow and rake the lawn and replace the broken fence panels.", job2);
+            var job4 = LoadOrCreateJob("Job4_RestoreTheSmoker", "Restore the offset smoker",
+                "Take off the tarp, scrape off the rust, clean the firebox and replace the door seal.", job3);
+            var job5 = LoadOrCreateJob("Job5_SortTheShed", "Sort the shed and stack the woodpile",
+                "Tidy the shed and stack the wood under cover so it dries. Wet wood smokes badly.", job4);
+
+            bool isNew = AssetDatabase.LoadAssetAtPath<JobBook>(JobBookPath) == null;
+            var book = PlaceholderAssetWriter.LoadOrCreateAsset<JobBook>(JobBookPath);
+            if (isNew)
+            {
+                book.SetJobs(new[] { job1, job2, job3, job4, job5 });
+                EditorUtility.SetDirty(book);
+            }
+            return book;
+        }
+
+        static JobData LoadOrCreateJob(string fileName, string title, string description, JobData requires,
+            RectInt[] areas = null, MessageData completionMessage = null)
+        {
+            string path = JobFolder + fileName + ".asset";
+            bool isNew = AssetDatabase.LoadAssetAtPath<JobData>(path) == null;
+            var job = PlaceholderAssetWriter.LoadOrCreateAsset<JobData>(path);
+            if (isNew)
+            {
+                job.title = title;
+                job.description = description;
+                job.requires = requires != null ? new[] { requires } : new JobData[0];
+                job.areas = areas ?? new RectInt[0];
+                job.completionMessage = completionMessage;
+                EditorUtility.SetDirty(job);
+            }
+            return job;
+        }
+
+        static MessageData LoadOrCreateJob1Message()
+        {
+            bool isNew = AssetDatabase.LoadAssetAtPath<MessageData>(Job1MessagePath) == null;
+            var message = PlaceholderAssetWriter.LoadOrCreateAsset<MessageData>(Job1MessagePath);
+            if (isNew)
+            {
+                message.title = "Patio cleared!";
+                message.body = "[Placeholder text] The patio is clear for the first time in years. " +
+                               "The old kettle grill could do with a good scrub next.\n\n" +
+                               "Next job: Clean the kettle grill. Press Tab to see the jobs board.";
+                EditorUtility.SetDirty(message);
+            }
+            return message;
         }
 
         static ClearableData LoadOrCreateClearable(string fileName, string tileName, string spritePath,
@@ -190,16 +261,44 @@ namespace BBQKing.EditorTools
         static float Random01(Vector2Int cell, int seed) => (PlaceholderHash.Mix(cell.x, cell.y, seed) & 0xffff) / 65535f;
         static int Pick(Vector2Int cell, int seed, int count) => (int)(PlaceholderHash.Mix(cell.x, cell.y, seed) % (uint)count);
 
-        /// <summary>The clearing system, which handles tool uses on the Overgrowth tilemap.</summary>
-        public static void AddClearingSystem(BackyardSceneBuilder.MapRefs map, Assets a)
+        /// <summary>
+        /// The clearing system, which handles tool uses on the Overgrowth tilemap, and the job
+        /// tracker, which counts cleared tiles towards jobs. Both live on one "Restoration" object.
+        /// </summary>
+        public static void AddClearingSystem(BackyardSceneBuilder.MapRefs map, Assets a, MessageEventChannel messageChannel)
         {
-            var system = new GameObject("Clearing System").AddComponent<ClearingSystem>();
+            var go = new GameObject("Restoration");
+            var system = go.AddComponent<ClearingSystem>();
             SetRef(system, "overgrowth", map.overgrowth);
             SetRef(system, "ground", map.ground);
             SetRef(system, "config", a.clearing);
+            SetRef(system, "jobBook", a.jobBook);
             SetRef(system, "toolUseChannel", a.toolUseChannel);
             SetRef(system, "tileClearedChannel", a.tileClearedChannel);
             SetRef(system, "hintChannel", a.hintChannel);
+
+            var tracker = go.AddComponent<JobTracker>();
+            SetRef(tracker, "jobBook", a.jobBook);
+            SetRef(tracker, "clearing", system);
+            SetRef(tracker, "tileClearedChannel", a.tileClearedChannel);
+            SetRef(tracker, "showMessageChannel", messageChannel);
+        }
+
+        /// <summary>The current job in the top-left corner of the screen.</summary>
+        public static void AddJobHud(Transform canvas, Assets a)
+        {
+            var root = UiFactory.Root(canvas, "Job HUD");
+            var panel = UiFactory.Image(root, "Panel", PlaceholderArt.UiPanelDark);
+            UiFactory.Anchor(panel.rectTransform, new Vector2(0f, 1f), new Vector2(6f, -6f), new Vector2(170f, 34f));
+            var title = UiFactory.Text(panel.transform, "Title", "Clear the patio", 12, TextAnchor.UpperLeft, UiFactory.LightText);
+            UiFactory.Stretch(title.rectTransform, 6, 14, 4, 3);
+            var progress = UiFactory.Text(panel.transform, "Progress", "38 left", 10, TextAnchor.LowerLeft, UiFactory.LightText);
+            UiFactory.Stretch(progress.rectTransform, 6, 3, 4, 18);
+
+            var hud = root.gameObject.AddComponent<JobHudUI>();
+            SetRef(hud, "jobBook", a.jobBook);
+            SetRef(hud, "titleLabel", title);
+            SetRef(hud, "progressLabel", progress);
         }
 
         /// <summary>Short hints such as "Try the gloves.", above the toolbar and the prompt.</summary>

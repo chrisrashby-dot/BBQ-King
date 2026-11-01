@@ -20,6 +20,9 @@ namespace BBQKing.Restoration
         [SerializeField] Tilemap ground;
         [SerializeField] ClearingConfig config;
 
+        [Tooltip("Tiles in the area of a job that is still locked cannot be cleared yet.")]
+        [SerializeField] JobBook jobBook;
+
         [SerializeField] ToolUseEventChannel toolUseChannel;
         [SerializeField] TileClearedEventChannel tileClearedChannel;
 
@@ -58,6 +61,13 @@ namespace BBQKing.Restoration
         {
             var what = ClearableAt(use.cell);
             if (what == null) return; // nothing here to clear
+
+            var job = jobBook != null ? jobBook.JobCovering(use.cell) : null;
+            if (job != null && jobBook.StatusOf(job) == JobStatus.Locked)
+            {
+                Hint(config.notYetHint);
+                return;
+            }
 
             if (what.tool != use.tool)
             {

@@ -97,7 +97,7 @@ namespace BBQKing.EditorTools
             // ---------- Map
             var map = BuildMap(tiles);
             RestorationBuilder.PlaceOvergrowth(map, tiles, restoration);
-            RestorationBuilder.AddClearingSystem(map, restoration);
+            RestorationBuilder.AddClearingSystem(map, restoration, messageChannel);
 
             // ---------- Camera
             var cam = BuildCamera(display, map.ground);
@@ -485,6 +485,7 @@ namespace BBQKing.EditorTools
             // --- Toolbar, bottom centre. Created first so panels drawn later appear on top of it
             // (Unity draws UI in the order it appears in the Hierarchy).
             RestorationBuilder.AddToolbar(canvasGo.transform, restoration);
+            RestorationBuilder.AddJobHud(canvasGo.transform, restoration);
 
             // --- Interaction prompt, bottom centre above the toolbar. The controller sits on a parent that stays
             // active, because a disabled object stops listening for events.
