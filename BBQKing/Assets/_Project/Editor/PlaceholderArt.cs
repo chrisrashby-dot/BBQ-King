@@ -434,38 +434,79 @@ namespace BBQKing.EditorTools
         static readonly Color32 TerracottaLight = PixelCanvas.Hex("#d98a5e");
 
         /// <summary>
-        /// A weed in three sizes (0 small, 1 medium, 2 large). Bigger weeds take more pulls, so
-        /// they need to look clearly bigger. The large one has a yellow flower.
+        /// A weed in three sizes (0 small, 1 medium, 2 large), drawn like a dandelion: a flat
+        /// rosette of jagged leaves spreading out over the slab, seen from the three-quarter view.
+        /// Bigger weeds take more pulls, so each size is clearly bigger: the medium one adds a few
+        /// grass blades and the large one a yellow flower on a stalk.
         /// </summary>
         static PixelCanvas DrawWeed(int size)
         {
             var c = new PixelCanvas(32, 32);
-            int height = 6 + size * 5;     // 6, 11 or 16 pixels tall
-            int spread = 2 + size * 2;     // how far the leaves reach sideways
-            int baseY = 9;
-            // Stem.
-            for (int y = baseY; y < baseY + height; y++) c.Set(16, y, GrassDark);
-            // Pairs of leaves up the stem, lit on the left.
-            for (int pair = 0; pair <= size + 1; pair++)
+            var centre = new Vector2(16f, 12f);
+
+            // Leaf directions in degrees (0 = right, 90 = away from the viewer).
+            float[][] angles =
             {
-                int y = baseY + 1 + pair * 3;
-                int reach = Mathf.Max(1, spread - pair);
-                for (int i = 1; i <= reach; i++)
-                {
-                    c.Set(16 - i, y + i / 2, GrassLight);
-                    c.Set(16 + i, y + i / 2, GrassMid);
-                }
+                new[] { 15f, 100f, 165f, 215f, 325f },
+                new[] { 5f, 60f, 115f, 170f, 210f, 270f, 330f },
+                new[] { 0f, 45f, 90f, 135f, 180f, 215f, 255f, 295f, 335f },
+            };
+            float length = 6f + size * 3f;     // 6, 9 or 12 pixels
+            float width = 1.8f + size * 0.6f;  // half-width at the widest point
+
+            // Draw the leaves pointing away first, so the ones pointing towards the viewer overlap them.
+            var order = (float[])angles[size].Clone();
+            System.Array.Sort(order, (a, b) => Mathf.Sin(b * Mathf.Deg2Rad).CompareTo(Mathf.Sin(a * Mathf.Deg2Rad)));
+            foreach (float angle in order) Leaf(c, centre, angle, length, width);
+
+            if (size >= 1)
+            {
+                // A few grass blades poking up through the leaves.
+                foreach (int x in new[] { 13, 18, 20 })
+                    for (int j = 0; j < 4 + size; j++) c.Set(x + (j > 3 ? 1 : 0), 13 + j, j < 2 ? GrassMid : GrassPale);
             }
+
             if (size == 2)
             {
-                int top = baseY + height;
-                c.FillRect(15, top, 3, 3, FlowerYellow);
-                c.Set(16, top + 1, Brass);
+                // A dandelion flower on a slightly bent stalk.
+                for (int j = 0; j < 10; j++) c.Set(16 + (j > 6 ? 1 : 0), 13 + j, GrassDark);
+                c.FillRect(15, 23, 5, 3, FlowerYellow);
+                c.FillRect(16, 26, 3, 1, FlowerYellow);
+                c.Set(17, 24, Brass);
             }
-            // A little bare soil at the base.
-            c.FillRect(14, baseY - 1, 5, 1, DirtMid);
+
             AddOutline(c, Outline);
             return c;
+        }
+
+        /// <summary>
+        /// One jagged leaf lying on the ground, from the centre outwards. Up-and-down distances are
+        /// squashed to suggest the three-quarter view; the edge facing the top-left light is paler.
+        /// </summary>
+        static void Leaf(PixelCanvas c, Vector2 centre, float angleDegrees, float length, float halfWidth)
+        {
+            const float squash = 0.55f;
+            float a = angleDegrees * Mathf.Deg2Rad;
+            var along = new Vector2(Mathf.Cos(a), Mathf.Sin(a) * squash);
+            var across = new Vector2(-Mathf.Sin(a), Mathf.Cos(a) * squash).normalized;
+            bool acrossFacesLight = Vector2.Dot(across, new Vector2(-1f, 1f)) > 0f;
+
+            for (float t = 0.5f; t <= length; t += 0.5f)
+            {
+                // Widest in the middle, pointed at the tip, with notches along the edge like a dandelion leaf.
+                float w = halfWidth * Mathf.Sin(Mathf.PI * Mathf.Min(1f, t / length * 1.15f));
+                if ((int)(t * 2f) % 5 == 0) w *= 0.45f;
+
+                for (float s = -w; s <= w; s += 0.5f)
+                {
+                    var p = centre + along * t + across * s;
+                    Color32 colour;
+                    if (Mathf.Abs(s) < 0.5f && t > 1.5f) colour = GrassDark;          // the middle vein
+                    else if ((s > 0f) == acrossFacesLight) colour = GrassLight;       // the lit half
+                    else colour = GrassMid;
+                    c.Set(Mathf.RoundToInt(p.x), Mathf.RoundToInt(p.y), colour);
+                }
+            }
         }
 
         /// <summary>A black trash bag slumped on its side.</summary>

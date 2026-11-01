@@ -118,10 +118,10 @@ TextureImporter:
       name: weed_medium_0
       rect:
         serializedVersion: 2
-        x: 11
+        x: 8
         y: 7
-        width: 11
-        height: 14
+        width: 17
+        height: 12
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
