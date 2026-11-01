@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a018b0ddc7b861347823652a6fdf5eef, type: 3}
+  m_Name: PlayerSprites
+  m_EditorClassIdentifier: BBQKing::BBQKing.Player.CharacterSprites
+  down:
+  - {fileID: 21300000, guid: 68ddab92e557eca449de65a2ab1af5ab, type: 3}
+  - {fileID: 21300000, guid: 5a49376be299ca54492cd669acb8775f, type: 3}
+  - {fileID: 21300000, guid: 55ca865afa5f0f540ad51b51b35661c7, type: 3}
+  - {fileID: 21300000, guid: 94bd3dce2f9ba1f438b27f57127979f9, type: 3}
+  up:
+  - {fileID: 21300000, guid: b1c52ef41d1b43648ab4876d8a4a5dae, type: 3}
+  - {fileID: 21300000, guid: 00fe876a06fca354fbd3306af1994146, type: 3}
+  - {fileID: 21300000, guid: 068933aacb956884ca181ff5a64f9307, type: 3}
+  - {fileID: 21300000, guid: 227fe05b701f2e2408a5e1012f872f4b, type: 3}
+  left:
+  - {fileID: 21300000, guid: e195c2db9fcb8bf4a8b9b9de4eca8ab6, type: 3}
+  - {fileID: 21300000, guid: 9906e14af48241049ad60e43c9fe000b, type: 3}
+  - {fileID: 21300000, guid: 6d824ffc601bba94c82722551bdd5920, type: 3}
+  - {fileID: 21300000, guid: 4fdc14081c3c32540acb27491a71eee7, type: 3}
+  right:
+  - {fileID: 21300000, guid: 5b6806074237e1b4fa1370dca71a615b, type: 3}
+  - {fileID: 21300000, guid: 75cfcaaae10a2574eb10e8b19bcd33c7, type: 3}
+  - {fileID: 21300000, guid: d477eac50114992468dc2aaff3837b14, type: 3}
+  - {fileID: 21300000, guid: 20222d00010548342b06b5f51616709c, type: 3}

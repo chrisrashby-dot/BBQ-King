@@ -21,6 +21,9 @@ namespace BBQKing.EditorTools
         /// <summary>The cell in the bottom row of the house wall where the back door sits.</summary>
         public static readonly Vector2Int BackDoor = new Vector2Int(15, 22);
 
+        /// <summary>Where the player stands at the start: on the patio, just outside the back door.</summary>
+        public static readonly Vector2 PlayerStart = new Vector2(15.5f, 20.4f);
+
         /// <summary>Back door and patio: available from the start.</summary>
         public static readonly RectInt Patio = new RectInt(10, 15, 12, 7);
 

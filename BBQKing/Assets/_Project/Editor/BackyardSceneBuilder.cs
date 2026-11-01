@@ -1,4 +1,5 @@
 using BBQKing.Core;
+using BBQKing.Player;
 using BBQKing.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -28,6 +29,8 @@ namespace BBQKing.EditorTools
         // Data assets (ScriptableObjects). Created with default values if missing.
         const string InputReaderPath = "Assets/_Project/Data/Input/InputReader.asset";
         const string DisplayConfigPath = "Assets/_Project/Data/Settings/DisplayConfig.asset";
+        const string PlayerConfigPath = "Assets/_Project/Data/Player/PlayerConfig.asset";
+        const string PlayerSpritesPath = "Assets/_Project/Data/Characters/PlayerSprites.asset";
 
         // Sorting orders: flat ground layers draw first, then everything that stands up is
         // Y-sorted together at order 0 (see ConfigureRenderer).
@@ -62,6 +65,8 @@ namespace BBQKing.EditorTools
             var tiles = CreateTiles();
             var input = PlaceholderAssetWriter.LoadOrCreateAsset<InputReader>(InputReaderPath);
             var display = PlaceholderAssetWriter.LoadOrCreateAsset<DisplayConfig>(DisplayConfigPath);
+            var playerConfig = PlaceholderAssetWriter.LoadOrCreateAsset<PlayerConfig>(PlayerConfigPath);
+            var playerSprites = LoadPlayerSprites();
 
             // ---------- Game: scene-wide helpers
             var gameGo = new GameObject("Game");
@@ -82,9 +87,10 @@ namespace BBQKing.EditorTools
             // ---------- UI
             BuildUI(display);
 
-            // Start the camera over the patio for now (it follows the player once there is one).
-            Vector2 patioCentre = map.ground.CellToWorld((Vector3Int)Vector2Int.RoundToInt(BackyardLayout.Patio.center));
-            cam.transform.position = new Vector3(patioCentre.x, patioCentre.y, -10f);
+            // ---------- Player
+            var player = BuildPlayer(input, playerConfig, playerSprites);
+            SetRef(cam.GetComponent<CameraFollow>(), "target", player.transform);
+            cam.transform.position = new Vector3(player.transform.position.x, player.transform.position.y, -10f);
 
             // ---------- Save and add to the build
             PlaceholderAssetWriter.EnsureFolder(ScenePath);
@@ -119,6 +125,65 @@ namespace BBQKing.EditorTools
             var follow = camGo.AddComponent<CameraFollow>();
             SetRef(follow, "boundsTilemap", bounds);
             return cam;
+        }
+
+        // ------------------------------------------------------------------ player
+
+        static PlayerMovement BuildPlayer(InputReader input, PlayerConfig config, CharacterSprites sprites)
+        {
+            var playerGo = new GameObject("Player");
+            playerGo.transform.position = BackyardLayout.PlayerStart;
+
+            var body = playerGo.AddComponent<Rigidbody2D>();
+            body.gravityScale = 0f;
+            body.freezeRotation = true;
+            body.interpolation = RigidbodyInterpolation2D.Interpolate; // smooth movement between physics steps
+            body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+
+            // Only the feet collide, so the head can overlap things behind the player (three-quarter view).
+            var feet = playerGo.AddComponent<BoxCollider2D>();
+            feet.size = new Vector2(0.45f, 0.25f);
+            feet.offset = new Vector2(0f, 0.12f);
+
+            var movement = playerGo.AddComponent<PlayerMovement>();
+            SetRef(movement, "input", input);
+            SetRef(movement, "config", config);
+
+            // The sprite sits on a child object so effects (bobbing, flashing) never move the collider.
+            var visual = new GameObject("Visual");
+            visual.transform.SetParent(playerGo.transform, false);
+            var renderer = visual.AddComponent<SpriteRenderer>();
+            renderer.sprite = sprites.FramesFor(Facing.Down)[0];
+            renderer.sortingOrder = StandingOrder;
+            // Sort by the feet (the pivot) rather than the middle of the sprite, so the player
+            // goes behind a fence only when actually standing behind it.
+            renderer.spriteSortPoint = SpriteSortPoint.Pivot;
+
+            var animator = playerGo.AddComponent<CharacterAnimator>();
+            SetRef(animator, "movement", movement);
+            SetRef(animator, "spriteRenderer", renderer);
+            SetRef(animator, "sprites", sprites);
+            SetRef(animator, "config", config);
+            return movement;
+        }
+
+        /// <summary>Creates the player's sprite set asset, filling in the placeholder frames if it is new or empty.</summary>
+        static CharacterSprites LoadPlayerSprites()
+        {
+            var sprites = PlaceholderAssetWriter.LoadOrCreateAsset<CharacterSprites>(PlayerSpritesPath);
+            if (sprites.down.Length == 0) sprites.down = LoadFrames(Facing.Down);
+            if (sprites.up.Length == 0) sprites.up = LoadFrames(Facing.Up);
+            if (sprites.left.Length == 0) sprites.left = LoadFrames(Facing.Left);
+            if (sprites.right.Length == 0) sprites.right = LoadFrames(Facing.Right);
+            EditorUtility.SetDirty(sprites);
+            return sprites;
+        }
+
+        static Sprite[] LoadFrames(Facing facing)
+        {
+            var frames = new Sprite[PlaceholderArt.WalkFrames];
+            for (int i = 0; i < frames.Length; i++) frames[i] = LoadSprite(PlaceholderArt.PlayerFrame(facing, i));
+            return frames;
         }
 
         // ------------------------------------------------------------------ map

@@ -1,3 +1,4 @@
+using BBQKing.Player;
 using UnityEditor;
 using UnityEngine;
 
@@ -32,6 +33,13 @@ namespace BBQKing.EditorTools
         // ----- UI frames (9-sliced)
         public const string UiPanelDark = Root + "UI/ui_panel_dark.png";
         public const string UiPanelPaper = Root + "UI/ui_panel_paper.png";
+
+        // ----- Player walk frames (32 x 32, bottom-centre pivot so the feet sit on the position)
+        public const int WalkFrames = 4;
+
+        /// <summary>For example Characters/player_walk_down_0.png. Frame 0 is also the standing pose.</summary>
+        public static string PlayerFrame(Facing facing, int frame) =>
+            Root + $"Characters/player_walk_{facing.ToString().ToLowerInvariant()}_{frame}.png";
 
         // A small warm palette shared by all placeholders.
         static readonly Color32 Outline = PixelCanvas.Hex("#2b1d14");
@@ -74,6 +82,14 @@ namespace BBQKing.EditorTools
 
             Frame(UiPanelDark, PanelDark, PanelEdge);
             Frame(UiPanelPaper, Paper, Grout);
+
+            foreach (Facing facing in System.Enum.GetValues(typeof(Facing)))
+                for (int frame = 0; frame < WalkFrames; frame++)
+                {
+                    string path = PlayerFrame(facing, frame);
+                    if (PlaceholderAssetWriter.SavePngIfMissing(path, DrawPlayer(facing, frame)))
+                        PlaceholderAssetWriter.ConfigureSprite(path, SpriteAlignment.BottomCenter);
+                }
         }
 
         static void Tile(string path, System.Func<PixelCanvas> draw)
@@ -212,6 +228,118 @@ namespace BBQKing.EditorTools
             c.FillRect(x0 + 2, y0 + height + 1, 2, 1, WoodLight);
             c.Outline(x0, y0, 6, height, WoodDark);
         }
+
+        // ------------------------------------------------------------------ player
+
+        static readonly Color32 Skin = PixelCanvas.Hex("#e8b48a");
+        static readonly Color32 SkinShade = PixelCanvas.Hex("#c98f68");
+        static readonly Color32 Hair = PixelCanvas.Hex("#5a3a22");
+        static readonly Color32 Shirt = PixelCanvas.Hex("#c94f3b");
+        static readonly Color32 ShirtLight = PixelCanvas.Hex("#e0705a");
+        static readonly Color32 ShirtShade = PixelCanvas.Hex("#9c3a2b");
+        static readonly Color32 Trousers = PixelCanvas.Hex("#3b4f7a");
+        static readonly Color32 TrousersShade = PixelCanvas.Hex("#2c3b5c");
+        static readonly Color32 Shoes = PixelCanvas.Hex("#3a2a20");
+        static readonly Color32 Eye = PixelCanvas.Hex("#2b1d14");
+
+        /// <summary>
+        /// A simple person: head, shirt, trousers and shoes, about 24 pixels tall.
+        /// Walk frames: 0 and 2 are the passing poses, 1 and 3 are steps with the body raised a pixel.
+        /// </summary>
+        static PixelCanvas DrawPlayer(Facing facing, int frame)
+        {
+            var c = new PixelCanvas(32, 32);
+            bool stepping = frame % 2 == 1;
+            int bob = stepping ? 1 : 0;          // body rises on the stepping frames
+            bool firstLegForward = frame == 1;   // frame 3 swaps legs
+
+            if (facing == Facing.Down || facing == Facing.Up)
+            {
+                // Legs: on a step, one foot lifts by a pixel.
+                int leftLift = stepping && firstLegForward ? 1 : 0;
+                int rightLift = stepping && !firstLegForward ? 1 : 0;
+                Leg(c, 12, 1 + leftLift, 3, 6 + bob - leftLift, Trousers);
+                Leg(c, 17, 1 + rightLift, 3, 6 + bob - rightLift, TrousersShade);
+
+                // Body and arms (the arms swing opposite to the legs).
+                int y0 = 7 + bob;
+                c.FillRect(11, y0, 10, 9, Shirt);
+                for (int j = y0; j < y0 + 9; j++) { c.Set(11, j, ShirtLight); c.Set(20, j, ShirtShade); }
+                int armSwing = stepping ? (firstLegForward ? 1 : -1) : 0;
+                c.FillRect(9, y0 + 2 + armSwing, 2, 6, Shirt);
+                c.FillRect(21, y0 + 2 - armSwing, 2, 6, ShirtShade);
+                c.Set(9, y0 + 1 + armSwing, Skin); c.Set(10, y0 + 1 + armSwing, Skin);
+                c.Set(21, y0 + 1 - armSwing, SkinShade); c.Set(22, y0 + 1 - armSwing, SkinShade);
+
+                // Head: face from the front, all hair from behind.
+                int hy = y0 + 9;
+                c.FillRect(11, hy, 10, 9, facing == Facing.Down ? Skin : Hair);
+                c.FillRect(11, hy + 6, 10, 3, Hair);
+                if (facing == Facing.Down)
+                {
+                    c.Set(13, hy + 3, Eye); c.Set(18, hy + 3, Eye);
+                    for (int j = hy; j < hy + 6; j++) c.Set(20, j, SkinShade);
+                }
+            }
+            else
+            {
+                // Drawn facing left; the right-facing frames are a mirror image.
+                int frontStep = stepping ? (firstLegForward ? -2 : 1) : 0;
+                Leg(c, 14 + frontStep, 1, 3, 6 + bob, Trousers);
+                Leg(c, 15 - frontStep, 1, 3, 6 + bob, TrousersShade);
+                c.FillRect(12 + frontStep, 1, 3, 1, Shoes); // toe pointing left
+
+                int y0 = 7 + bob;
+                c.FillRect(12, y0, 8, 9, Shirt);
+                for (int j = y0; j < y0 + 9; j++) { c.Set(12, j, ShirtLight); c.Set(19, j, ShirtShade); }
+                int armSwing = stepping ? (firstLegForward ? -1 : 1) : 0;
+                c.FillRect(15 + armSwing, y0 + 1, 2, 6, ShirtShade);
+                c.Set(15 + armSwing, y0, Skin);
+
+                int hy = y0 + 9;
+                c.FillRect(11, hy, 9, 9, Skin);
+                c.FillRect(14, hy + 2, 6, 7, Hair);   // hair at the back of the head
+                c.FillRect(11, hy + 6, 9, 3, Hair);
+                c.Set(12, hy + 3, Eye);
+                c.Set(10, hy + 2, Skin);              // nose
+
+                if (facing == Facing.Right) c = Mirror(c);
+            }
+
+            AddOutline(c, Outline);
+            return c;
+        }
+
+        static void Leg(PixelCanvas c, int x, int y, int width, int height, Color32 colour)
+        {
+            c.FillRect(x, y, width, height, colour);
+            c.FillRect(x, y - 1, width, 1, Shoes);
+        }
+
+        static PixelCanvas Mirror(PixelCanvas source)
+        {
+            var m = new PixelCanvas(source.Width, source.Height);
+            for (int y = 0; y < source.Height; y++)
+                for (int x = 0; x < source.Width; x++)
+                    m.Set(source.Width - 1 - x, y, source.Get(x, y));
+            return m;
+        }
+
+        /// <summary>Draws a one-pixel dark outline around every shape, as the art style guide asks.</summary>
+        static void AddOutline(PixelCanvas c, Color32 colour)
+        {
+            var solid = new bool[c.Width * c.Height];
+            for (int i = 0; i < solid.Length; i++) solid[i] = c.Pixels[i].a > 0;
+
+            bool IsSolid(int x, int y) => x >= 0 && y >= 0 && x < c.Width && y < c.Height && solid[y * c.Width + x];
+
+            for (int y = 0; y < c.Height; y++)
+                for (int x = 0; x < c.Width; x++)
+                    if (!IsSolid(x, y) && (IsSolid(x - 1, y) || IsSolid(x + 1, y) || IsSolid(x, y - 1) || IsSolid(x, y + 1)))
+                        c.Set(x, y, colour);
+        }
+
+        // ------------------------------------------------------------------ house
 
         static PixelCanvas DrawHouseWall()
         {
