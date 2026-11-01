@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/_Project/Scenes/Backyard.unity
+    guid: 5342ed39951b9d54f97a8ad88d6235ca
   m_configObjects: {}
