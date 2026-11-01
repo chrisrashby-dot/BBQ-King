@@ -51,7 +51,7 @@ If the repository does not yet match this layout, propose the setup first and wa
 ## Technical rules
 
 - Unity 6, 2D project, Universal Render Pipeline with the 2D renderer.
-- Pixel Perfect Camera, reference resolution 960x540 (proposed; make it easy to switch to 640x360 or 1280x720 for testing), 32 pixels per unit, integer scaling.
+- Pixel Perfect Camera, reference resolution 960x540 (chosen after testing; keep it easy to switch to 640x360 or 1280x720 for testing), 32 pixels per unit, integer scaling.
 - Sprite import settings: Filter Mode Point, Compression None, Pixels Per Unit 32.
 - Tilemap for ground, overgrowth and fences; interactable objects as prefabs.
 - Input System package; all actions in one input asset. Keyboard and mouse first, but keep controller support possible.
