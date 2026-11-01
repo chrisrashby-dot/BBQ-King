@@ -30,6 +30,14 @@ namespace BBQKing.EditorTools
         public const string FenceBroken = Root + "Tiles/fence_broken.png";
         public const string HouseWall = Root + "Tiles/wall_house.png";
 
+        // ----- Overgrowth and rubbish (32 x 32, centre pivot, transparent so the ground shows)
+        public const string WeedSmall = Root + "Overgrowth/weed_small.png";
+        public const string WeedMedium = Root + "Overgrowth/weed_medium.png";
+        public const string WeedLarge = Root + "Overgrowth/weed_large.png";
+        public const string RubbishBag = Root + "Overgrowth/rubbish_bag.png";
+        public const string RubbishCans = Root + "Overgrowth/rubbish_cans.png";
+        public const string RubbishPotBroken = Root + "Overgrowth/rubbish_pot_broken.png";
+
         // ----- UI frames (9-sliced)
         public const string UiPanelDark = Root + "UI/ui_panel_dark.png";
         public const string UiPanelPaper = Root + "UI/ui_panel_paper.png";
@@ -90,6 +98,13 @@ namespace BBQKing.EditorTools
             Tile(FenceIntact, () => DrawFence(false));
             Tile(FenceBroken, () => DrawFence(true));
             Tile(HouseWall, DrawHouseWall);
+
+            Tile(WeedSmall, () => DrawWeed(0));
+            Tile(WeedMedium, () => DrawWeed(1));
+            Tile(WeedLarge, () => DrawWeed(2));
+            Tile(RubbishBag, DrawRubbishBag);
+            Tile(RubbishCans, DrawRubbishCans);
+            Tile(RubbishPotBroken, DrawRubbishPotBroken);
 
             Frame(UiPanelDark, PanelDark, PanelEdge);
             Frame(UiPanelPaper, Paper, Grout);
@@ -405,6 +420,97 @@ namespace BBQKing.EditorTools
             c.FillRect(21, 13, 2, 2, Brass);             // handle
             c.FillRect(3, 0, 26, 2, Step);               // step
             for (int i = 3; i < 29; i++) c.Set(i, 1, SidingLight);
+            return c;
+        }
+
+        // ------------------------------------------------------------------ overgrowth and rubbish
+
+        static readonly Color32 FlowerYellow = PixelCanvas.Hex("#f2c94c");
+        static readonly Color32 CanRed = PixelCanvas.Hex("#c0392b");
+        static readonly Color32 CanSilver = PixelCanvas.Hex("#b8bec4");
+        static readonly Color32 CanSilverDark = PixelCanvas.Hex("#868d94");
+        static readonly Color32 Terracotta = PixelCanvas.Hex("#c06a3e");
+        static readonly Color32 TerracottaDark = PixelCanvas.Hex("#8f4a2a");
+        static readonly Color32 TerracottaLight = PixelCanvas.Hex("#d98a5e");
+
+        /// <summary>
+        /// A weed in three sizes (0 small, 1 medium, 2 large). Bigger weeds take more pulls, so
+        /// they need to look clearly bigger. The large one has a yellow flower.
+        /// </summary>
+        static PixelCanvas DrawWeed(int size)
+        {
+            var c = new PixelCanvas(32, 32);
+            int height = 6 + size * 5;     // 6, 11 or 16 pixels tall
+            int spread = 2 + size * 2;     // how far the leaves reach sideways
+            int baseY = 9;
+            // Stem.
+            for (int y = baseY; y < baseY + height; y++) c.Set(16, y, GrassDark);
+            // Pairs of leaves up the stem, lit on the left.
+            for (int pair = 0; pair <= size + 1; pair++)
+            {
+                int y = baseY + 1 + pair * 3;
+                int reach = Mathf.Max(1, spread - pair);
+                for (int i = 1; i <= reach; i++)
+                {
+                    c.Set(16 - i, y + i / 2, GrassLight);
+                    c.Set(16 + i, y + i / 2, GrassMid);
+                }
+            }
+            if (size == 2)
+            {
+                int top = baseY + height;
+                c.FillRect(15, top, 3, 3, FlowerYellow);
+                c.Set(16, top + 1, Brass);
+            }
+            // A little bare soil at the base.
+            c.FillRect(14, baseY - 1, 5, 1, DirtMid);
+            AddOutline(c, Outline);
+            return c;
+        }
+
+        /// <summary>A black trash bag slumped on its side.</summary>
+        static PixelCanvas DrawRubbishBag()
+        {
+            var c = new PixelCanvas(32, 32);
+            c.FillRect(7, 7, 16, 11, BagMid);
+            c.FillRect(9, 18, 12, 2, BagMid);
+            c.FillRect(23, 10, 3, 4, BagDark);                   // tied neck
+            c.FillRect(26, 9, 2, 2, BagMid); c.FillRect(26, 13, 2, 2, BagMid);
+            for (int i = 9; i < 20; i++) c.Set(i, 17, BagLight); // shine along the top
+            for (int i = 8; i < 23; i++) c.Set(i, 7, BagDark);
+            AddOutline(c, Outline);
+            return c;
+        }
+
+        /// <summary>Two dropped drink cans, one red and one silver.</summary>
+        static PixelCanvas DrawRubbishCans()
+        {
+            var c = new PixelCanvas(32, 32);
+            // A red can lying down.
+            c.FillRect(6, 10, 11, 6, CanRed);
+            c.FillRect(17, 10, 2, 6, CanSilver);
+            for (int i = 6; i < 17; i++) c.Set(i, 15, PixelCanvas.Hex("#e0604f"));
+            // A crushed silver can standing up.
+            c.FillRect(21, 9, 6, 10, CanSilver);
+            for (int j = 9; j < 19; j++) c.Set(26, j, CanSilverDark);
+            c.Set(22, 13, CanSilverDark); c.Set(23, 14, CanSilverDark); c.Set(24, 13, CanSilverDark);
+            AddOutline(c, Outline);
+            return c;
+        }
+
+        /// <summary>A broken terracotta plant pot: a base and a few shards.</summary>
+        static PixelCanvas DrawRubbishPotBroken()
+        {
+            var c = new PixelCanvas(32, 32);
+            c.FillRect(10, 8, 10, 8, Terracotta);                // the lower half of the pot
+            c.FillRect(9, 16, 12, 2, TerracottaLight);           // its jagged rim
+            c.Set(12, 18, TerracottaLight); c.Set(16, 18, TerracottaLight);
+            for (int j = 8; j < 16; j++) c.Set(19, j, TerracottaDark);
+            c.FillRect(11, 14, 8, 2, DirtDark);                  // soil inside
+            c.FillRect(22, 7, 4, 3, Terracotta);                 // shards on the ground
+            c.FillRect(5, 9, 3, 2, TerracottaDark);
+            c.FillRect(23, 14, 3, 2, TerracottaLight);
+            AddOutline(c, Outline);
             return c;
         }
 

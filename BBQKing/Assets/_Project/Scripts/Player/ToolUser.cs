@@ -1,4 +1,5 @@
 using BBQKing.Core;
+using BBQKing.Restoration;
 using UnityEngine;
 
 namespace BBQKing.Player
@@ -6,6 +7,10 @@ namespace BBQKing.Player
     /// <summary>
     /// Works out which tile the player's tool is aimed at each frame and moves a highlight there,
     /// so the player can always see what a click will affect (see <see cref="ToolTargeting"/>).
+    ///
+    /// Pressing the use-tool button (left mouse) uses the tool once; holding it keeps using it at
+    /// the rate set in PlayerConfig. Each use is posted to a channel, and whichever system owns
+    /// that tile (clearing, for now) decides what happens.
     /// </summary>
     public class ToolUser : MonoBehaviour
     {
@@ -17,6 +22,9 @@ namespace BBQKing.Player
         [Tooltip("The square drawn over the target tile. It is moved, shown and hidden by this script.")]
         [SerializeField] SpriteRenderer highlight;
 
+        [Tooltip("Each use of the tool is posted here. The clearing system listens.")]
+        [SerializeField] ToolUseEventChannel toolUseChannel;
+
         /// <summary>The tile the tool is aimed at this frame.</summary>
         public Vector2Int TargetCell { get; private set; }
 
@@ -24,6 +32,7 @@ namespace BBQKing.Player
         public bool HasTarget { get; private set; }
 
         Camera cam;
+        float nextUseTime;
 
         void Start() => cam = Camera.main;
 
@@ -44,6 +53,22 @@ namespace BBQKing.Player
                 highlight.enabled = HasTarget;
                 if (HasTarget) highlight.transform.position = ToolTargeting.CellCentre(TargetCell);
             }
+
+            UseToolWhileHeld();
+        }
+
+        void UseToolWhileHeld()
+        {
+            // Letting go resets the timer, so the next press always acts straight away.
+            if (!HasTarget || !input.UseToolHeld)
+            {
+                nextUseTime = 0f;
+                return;
+            }
+            if (Time.time < nextUseTime) return;
+
+            nextUseTime = Time.time + config.toolRepeatSeconds;
+            if (toolUseChannel != null) toolUseChannel.Raise(new ToolUse(TargetCell, toolBelt.CurrentTool));
         }
 
         /// <summary>The mouse position in world units, or null if there is no mouse position yet.</summary>

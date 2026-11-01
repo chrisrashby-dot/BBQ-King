@@ -4,9 +4,7 @@ using BBQKing.Player;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.Rendering.Universal;
-using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
@@ -19,48 +17,17 @@ namespace BBQKing.Tests
     /// These check the M1 milestone end to end in the Backyard scene. The positions used match
     /// the map in Editor/BackyardLayout.cs; if you move the letter or door, update them here.
     /// </summary>
-    public class BackyardWalkthroughTests
+    public class BackyardWalkthroughTests : BackyardTestBase
     {
-        Keyboard keyboard;
-        InputSettings.BackgroundBehavior savedBackground;
-        InputSettings.EditorInputBehaviorInPlayMode savedEditorBehaviour;
-
-        GameObject player;
-        PlayerMovement movement;
         GameObject promptPanel;
         Text promptLabel;
         GameObject letterPanel;
-        InputReader input;
 
-        [UnitySetUp]
-        public IEnumerator LoadBackyard()
+        protected override void FindSceneParts()
         {
-            // The test runner window usually has focus, not the Game view, so tell the Input System
-            // to accept our pretend key presses anyway. Restored in TearDown.
-            savedBackground = InputSystem.settings.backgroundBehavior;
-            savedEditorBehaviour = InputSystem.settings.editorInputBehaviorInPlayMode;
-            InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
-            InputSystem.settings.editorInputBehaviorInPlayMode =
-                InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
-            keyboard = InputSystem.AddDevice<Keyboard>();
-
-            SceneManager.LoadScene("Backyard");
-            yield return Frames(5);
-
-            player = GameObject.Find("Player");
-            movement = player.GetComponent<PlayerMovement>();
             promptPanel = GameObject.Find("UI/Interaction Prompt").transform.Find("Panel").gameObject;
             promptLabel = promptPanel.GetComponentInChildren<Text>(true);
             letterPanel = GameObject.Find("UI/Message Panel").transform.Find("Paper").gameObject;
-            input = Resources.FindObjectsOfTypeAll<InputReader>()[0];
-        }
-
-        [TearDown]
-        public void RestoreInput()
-        {
-            InputSystem.RemoveDevice(keyboard);
-            InputSystem.settings.backgroundBehavior = savedBackground;
-            InputSystem.settings.editorInputBehaviorInPlayMode = savedEditorBehaviour;
         }
 
         [UnityTest]
@@ -151,28 +118,6 @@ namespace BBQKing.Tests
             {
                 display.Resolution = original; // do not leave the asset changed
             }
-        }
-
-        // ------------------------------------------------------------------ helpers
-
-        IEnumerator Hold(Key key, float seconds)
-        {
-            InputSystem.QueueStateEvent(keyboard, new KeyboardState(key));
-            float end = Time.time + seconds;
-            while (Time.time < end) yield return null;
-            InputSystem.QueueStateEvent(keyboard, new KeyboardState());
-            yield return Frames(2);
-        }
-
-        static IEnumerator Frames(int count)
-        {
-            for (int i = 0; i < count; i++) yield return null;
-        }
-
-        void Teleport(Vector2 position)
-        {
-            player.GetComponent<Rigidbody2D>().position = position;
-            player.transform.position = position;
         }
     }
 }

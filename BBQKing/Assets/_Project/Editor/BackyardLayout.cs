@@ -62,6 +62,9 @@ namespace BBQKing.EditorTools
         /// <summary>Roughly what share of patio slabs start with weeds, 0 to 1.</summary>
         public const float PatioWeedShare = 0.45f;
 
+        /// <summary>Roughly what share of the other patio slabs start with trash on them, 0 to 1.</summary>
+        public const float PatioTrashShare = 0.15f;
+
         /// <summary>True for the cells around the outside edge that get a fence (not where the house is).</summary>
         public static bool IsFence(int x, int y)
         {

@@ -82,7 +82,7 @@ namespace BBQKing.EditorTools
             var messageChannel = PlaceholderAssetWriter.LoadOrCreateAsset<MessageEventChannel>(MessageChannelPath);
             var letterMessage = LoadOrCreateMessage(LetterMessagePath, LetterTitle, LetterBody);
             var doorMessage = LoadOrCreateMessage(BackDoorMessagePath, BackDoorTitle, BackDoorBody);
-            var restoration = RestorationBuilder.LoadAssets();
+            var restoration = RestorationBuilder.LoadAssets(tiles);
 
             // ---------- Game: scene-wide helpers
             var gameGo = new GameObject("Game");
@@ -96,6 +96,8 @@ namespace BBQKing.EditorTools
 
             // ---------- Map
             var map = BuildMap(tiles);
+            RestorationBuilder.PlaceOvergrowth(map, tiles, restoration);
+            RestorationBuilder.AddClearingSystem(map, restoration);
 
             // ---------- Camera
             var cam = BuildCamera(display, map.ground);
@@ -295,12 +297,12 @@ namespace BBQKing.EditorTools
 
         // ------------------------------------------------------------------ map
 
-        struct TileSet
+        public struct TileSet
         {
             public Tile grassLong, grassCut, patioClean, patioWeedy, dirt, path, fenceIntact, fenceBroken, houseWall;
         }
 
-        struct MapRefs { public Tilemap ground, overgrowth, walls; }
+        public struct MapRefs { public Tilemap ground, overgrowth, walls; }
 
         static MapRefs BuildMap(TileSet tiles)
         {
@@ -424,7 +426,7 @@ namespace BBQKing.EditorTools
         }
 
         /// <summary>A tile asset just points at a sprite. Replacing the PNG updates the tile automatically.</summary>
-        static Tile MakeTile(string name, string spritePath, Tile.ColliderType collider)
+        public static Tile MakeTile(string name, string spritePath, Tile.ColliderType collider)
         {
             string path = TileFolder + name + ".asset";
             var tile = AssetDatabase.LoadAssetAtPath<Tile>(path);
@@ -489,6 +491,7 @@ namespace BBQKing.EditorTools
             var promptRoot = UiFactory.Root(canvasGo.transform, "Interaction Prompt");
             var promptPanel = UiFactory.Image(promptRoot, "Panel", PlaceholderArt.UiPanelDark);
             UiFactory.Anchor(promptPanel.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, RestorationBuilder.ToolbarHeight + 4f), new Vector2(180f, 22f));
+            RestorationBuilder.AddHint(canvasGo.transform, restoration, RestorationBuilder.ToolbarHeight + 30f);
             var promptText = UiFactory.Text(promptPanel.transform, "Label", "[E] Read the letter", 12, TextAnchor.MiddleCenter, UiFactory.LightText);
             UiFactory.Stretch(promptText.rectTransform, 4, 2, 4, 2);
             var prompt = promptRoot.gameObject.AddComponent<InteractionPromptUI>();

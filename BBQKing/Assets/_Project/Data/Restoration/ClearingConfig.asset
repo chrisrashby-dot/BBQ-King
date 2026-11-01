@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22fa0af7050d5cc4397c9a95a8f9f5d1, type: 3}
+  m_Name: ClearingConfig
+  m_EditorClassIdentifier: BBQKing::BBQKing.Restoration.ClearingConfig
+  clearables:
+  - {fileID: 11400000, guid: f86cc38088f87444eb488670e0c27c50, type: 2}
+  - {fileID: 11400000, guid: 38f0ce5c8863a574aaa52710b1261e3b, type: 2}
+  - {fileID: 11400000, guid: 9de8f02a337dbf94e9a28675f6ddd6b2, type: 2}
+  - {fileID: 11400000, guid: f00de48a0b00b96429f9c366bf944ed6, type: 2}
+  - {fileID: 11400000, guid: 555a622a96b55d149935be0f6359ea6a, type: 2}
+  - {fileID: 11400000, guid: b00afeb58c1323e4fa250358e9ce609a, type: 2}
+  wrongToolHint: Try the {0}.
+  notYetHint: That can wait for now.
+  shrinkPerAction: 0.15
