@@ -7,7 +7,7 @@ Claude Code updates this file at the end of every session. Newest entry at the t
 | Milestone | Status |
 | --- | --- |
 | M1 Foundations | Done (play-tested 1 Nov 2026) |
-| M2 Restoration | In progress: planning |
+| M2 Restoration | Built; waiting for a hand play-test in the Editor |
 | M3 Cleaning | Not started |
 | M4 First cookout | Not started |
 | M5 Economy and saving | Not started |
@@ -16,6 +16,21 @@ Claude Code updates this file at the end of every session. Newest entry at the t
 | M8 Polish and playtest | Not started |
 
 ## Session log
+
+### 1 Nov 2026: M2 Restoration
+
+Done (one commit per step):
+
+1. **Tools and toolbar:** gloves and trash bag as tool assets (`Data/Tools`), in slot order in `BackyardTools`. Keys 1 to 6 or the mouse wheel pick a tool; the toolbar along the bottom shows the icons, the selected slot and the tool's name. The builder's shared helpers moved into `BuilderUtil` and `UiFactory`, and the M2 parts into `RestorationBuilder`.
+2. **Aiming:** a new **Aim** action (mouse position). The tool works on the tile under the mouse if it is within 1.5 tiles of the player's feet, otherwise on the tile the player faces; a highlight marks it. Tab now also closes panels.
+3. **Clearing:** weeds in three sizes (1, 2 or 3 pulls with the gloves) on every weedy patio slab, and trash (bag, cans, broken pot: one grab with the trash bag) on some clean slabs. Holding the button repeats every 0.3 seconds. Big weeds shrink as they come loose, weedy slabs turn clean, and the wrong tool shows a hint ("Try the gloves.").
+4. **Job 1:** the five Act 1 jobs as data, each needing the one before, in a `JobBook`. Job 1 covers the patio (42 weeds and bits of trash); the HUD in the top-left counts down, and clearing the last one shows "Patio cleared!" and moves on to Job 2. Tiles in a locked job's area cannot be cleared yet.
+5. **Jobs board:** Tab opens a list of every job with its status (done, to do with tiles left and the description, or locked).
+6. **Tests and docs:** EditMode tests for tool slots, aiming, clearing counts and job statuses; PlayMode tests for pulling a weed, the wrong-tool hint, the HUD count, the jobs board and finishing Job 1. README updated.
+
+Checked in batch mode: everything compiles with no errors or warnings from our code; 36 EditMode and 11 PlayMode tests pass; screenshots of the toolbar, highlight, clearing, HUD, jobs board and "Patio cleared!" look as expected. **Not yet checked by hand in the Editor.**
+
+Next: play-test M2 in the Editor (README, "Playing Job 1"), then **M3 Cleaning** (close-up scrubbing scene, Job 2 the kettle grill, 95% rule).
 
 ### 1 Nov 2026: M1 Foundations
 
@@ -38,14 +53,20 @@ M1 play-tested by hand and marked done.
 Next: **M2 Restoration** (tile clearing with tools, Job 1, the jobs board).
 
 M2 decisions from the developer (1 Nov 2026):
-- **Gloves and bin bag are two separate tools:** gloves pull weeds, the bin bag picks up rubbish. This changes design.md section 5.2 (see questions below).
+- **Gloves and trash bag are two separate tools:** gloves pull weeds, the trash bag picks up trash. This changes design.md section 5.2 (see questions below).
+- **"Trash bag", not "bin bag":** the American term, for the setting.
 - **Targeting:** the tool works on the tile under the mouse when it is within reach, otherwise on the tile the player faces, with a highlight.
 - **Job complete:** when every tile in the job is cleared (the 95% rule stays for close-up scrubbing).
 - **Weekend counter:** waits for M4.
 
 ## Questions for the developer
 
-- **Design change to record (1 Nov 2026):** please update the master design document, section 5.2 Tools, so gloves and bin bags are listed as two separate tools ("gloves, bin bags, rake, shears, scraper, wire brush and hose"). Section 8 already lists them separately.
+- **Design changes to record (1 Nov 2026):** please update the master design document:
+  - Section 5.2 Tools: gloves and trash bags as two separate tools ("gloves, trash bags, rake, shears, scraper, wire brush and hose").
+  - Section 8 Tools: "bin bag" becomes "trash bag". (Section 8 also says "rubbish bags" under Overgrowth and rubbish; in-game this reads as trash, but the placeholder files keep the section 8 names, such as `rubbish_bag.png`, so they still match one for one. Say if you would like those renamed too.)
+- **M2 starting values to tune (design.md does not set them):** small, medium and large weeds take 1, 2 and 3 pulls; each piece of trash takes 1; 45% of patio slabs start weedy and 15% of the rest have trash; tool reach 1.5 tiles; holding the button uses the tool every 0.3 seconds. All are in data assets (see the README) except the two shares, which are in `Editor/BackyardLayout.cs`.
+- **Jobs and events:** each job currently needs only the job before it. In design.md section 4.3, events come between some jobs (for example Event 1 before Job 3); that link arrives with events in M4.
+- **Job 1 completion text:** "Patio cleared!" in `Data/Messages/Job1Done` is marked as placeholder text. Job 1 also unlocks the grilled corn recipe card (section 4.5); recipe cards arrive in M7.
 - **Reference resolution (answered 1 Nov 2026):** 960x540 chosen after testing. design.md and CLAUDE.md are both updated.
 - **Relative's name and the letter text:** still open in design.md section 11. The letter in `Data/Messages/RelativeLetter` has clearly marked placeholder text.
 - **Starting values for the player:** walking speed 3.5 tiles a second, walk animation 8 frames a second, reach 0.5 tiles ahead with a 0.6 tile radius. design.md does not set these; they are in `PlayerConfig` to tune.
