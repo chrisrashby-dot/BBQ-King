@@ -31,7 +31,7 @@ Done (one commit per step):
 
 Checked in batch mode: everything compiles with no errors or warnings from our code; 14 EditMode and 5 PlayMode tests pass; screenshots at all three resolutions look as expected. **Not yet checked by hand in the Editor.**
 
-Later the same day: fixed the back door drawing over the player (Y-sorting), and the developer chose **960x540** as the reference resolution.
+Later the same day: fixed the back door drawing over the player (Y-sorting), and the developer chose **960x540** as the reference resolution. All tests also pass in the Editor. Hand play-test: walking speed, camera and text readability are fine. The player could not get behind the bottom fence because each fence tile blocked its whole square; fences across the screen now block only a strip at their base (side fences still block the whole tile), with a new PlayMode test.
 
 Next: finish play-testing M1 in the Editor (see the README), then start **M2 Restoration** (tile clearing with tools, Job 1, the jobs board).
 

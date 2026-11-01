@@ -120,6 +120,18 @@ namespace BBQKing.Tests
         }
 
         [UnityTest]
+        public IEnumerator PlayerCanStandBehindTheBottomFence()
+        {
+            // The bottom fence only blocks its footing, so the player should walk into the upper
+            // part of the fence tile (y between 0.5 and 1), where Y-sorting draws them behind it.
+            Teleport(new Vector2(10.5f, 3f));
+            yield return Hold(Key.S, 1.5f);
+            float y = player.transform.position.y;
+            Assert.Less(y, 1f, "the player should step into the fence's tile, behind the pickets");
+            Assert.Greater(y, 0.5f, "the fence footing should still stop the player");
+        }
+
+        [UnityTest]
         public IEnumerator DisplayConfigChangesTheCameraLive()
         {
             var display = Resources.FindObjectsOfTypeAll<DisplayConfig>()[0];

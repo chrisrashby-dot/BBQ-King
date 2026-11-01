@@ -92,6 +92,8 @@ The scene, tiles, placeholder art, prefabs and data assets are created by `Asset
 
 You only need it if the scene gets into a muddle, or after changing the layout in code. You can also paint tiles by hand with **Window > 2D > Tile Palette**.
 
+Fence tiles are only pictures. The fence colliders are separate boxes on the **Walls and Fences** object: the side fences block their whole tile, while the fences across the top and bottom block only a strip at the bottom of the tile, so the player can step behind them. A fence you paint by hand will not block the player unless you add a Box Collider 2D for it (set its **Composite Operation** to **Merge**).
+
 ## Replacing the placeholder art
 
 Overwrite a PNG in `Assets/_Project/Art/Placeholder/` with your own file of the **same name and size**. The import settings and every tile, prefab and scene that uses it stay as they are.
@@ -124,7 +126,7 @@ If you ever set them by hand: select the image, set these in the Inspector, then
 
 1. Open **Window > General > Test Runner**.
 2. On the **EditMode** tab, click **Run All**. These check the facing and walk-cycle rules (14 tests).
-3. On the **PlayMode** tab, click **Run All**. These load the Backyard and press keys on a pretend keyboard to check walking, the letter, the back door, fences and the resolution switch (5 tests).
+3. On the **PlayMode** tab, click **Run All**. These load the Backyard and press keys on a pretend keyboard to check walking, the letter, the back door, fences (including standing behind the bottom fence) and the resolution switch (6 tests).
 
 ## Git and Git LFS
 

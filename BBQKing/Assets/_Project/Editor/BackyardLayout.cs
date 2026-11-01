@@ -51,6 +51,14 @@ namespace BBQKing.EditorTools
             new Vector2Int(26, 0), new Vector2Int(0, 9), new Vector2Int(39, 11),
         };
 
+        /// <summary>
+        /// How much of a fence tile's height, from the bottom, blocks the player on fences that run
+        /// across the screen (in tiles; 18 of 32 pixels). It is just over half a tile, so a player
+        /// standing behind the fence always has their feet above the fence tile's sorting point and
+        /// is drawn behind it.
+        /// </summary>
+        public const float FenceFootingDepth = 18f / 32f;
+
         /// <summary>Roughly what share of patio slabs start with weeds, 0 to 1.</summary>
         public const float PatioWeedShare = 0.45f;
 

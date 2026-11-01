@@ -325,16 +325,61 @@ namespace BBQKing.EditorTools
                         walls.SetTile((Vector3Int)cell, IsBrokenFence(cell) ? tiles.fenceBroken : tiles.fenceIntact);
                 }
 
-            // Walls and fences block the player. The collider shape is built from the tiles
-            // automatically, and the composite merges neighbouring tiles into one smooth outline
-            // so the player does not snag on the seams.
+            // Walls and fences block the player. The house wall's collider is built from its tiles
+            // automatically; the fences get box colliders (see AddFenceColliders). The composite
+            // merges them all into one smooth outline so the player does not snag on the seams.
             var body = walls.gameObject.AddComponent<Rigidbody2D>();
             body.bodyType = RigidbodyType2D.Static;
             var tileCollider = walls.gameObject.AddComponent<TilemapCollider2D>();
             tileCollider.compositeOperation = Collider2D.CompositeOperation.Merge;
+            AddFenceColliders(walls.gameObject);
             walls.gameObject.AddComponent<CompositeCollider2D>();
 
             return new MapRefs { ground = ground, overgrowth = overgrowth, walls = walls };
+        }
+
+        /// <summary>
+        /// In a three-quarter view a fence running across the screen stands on a thin strip of
+        /// ground at the bottom of its tile, and the pickets rise up the rest of the tile. Blocking
+        /// only that strip lets the player walk up close behind the fence, where Y-sorting hides
+        /// their legs behind the pickets. The side fences run up the screen, so they block their
+        /// whole tile; a strip per tile there would leave gaps to squeeze through.
+        ///
+        /// Broken panels still block the player in M1, so nobody wanders off the map.
+        /// </summary>
+        static void AddFenceColliders(GameObject walls)
+        {
+            var map = BackyardLayout.Map;
+
+            foreach (int x in new[] { map.xMin, map.xMax - 1 })
+                AddSolidBox(walls, new Rect(x, map.yMin, 1, map.height));
+
+            foreach (int y in new[] { map.yMin, map.yMax - 1 })
+            {
+                // Find each unbroken run of fence along the row (the house interrupts the top row).
+                int runStart = -1;
+                for (int x = map.xMin + 1; x <= map.xMax - 1; x++)
+                {
+                    bool fence = x < map.xMax - 1 && BackyardLayout.IsFence(x, y);
+                    if (fence && runStart < 0)
+                    {
+                        runStart = x;
+                    }
+                    else if (!fence && runStart >= 0)
+                    {
+                        AddSolidBox(walls, new Rect(runStart, y, x - runStart, BackyardLayout.FenceFootingDepth));
+                        runStart = -1;
+                    }
+                }
+            }
+        }
+
+        static void AddSolidBox(GameObject target, Rect area)
+        {
+            var box = target.AddComponent<BoxCollider2D>();
+            box.size = area.size;
+            box.offset = area.center;
+            box.compositeOperation = Collider2D.CompositeOperation.Merge;
         }
 
         static TileBase GroundTileAt(Vector2Int cell, TileSet tiles)
@@ -365,10 +410,11 @@ namespace BBQKing.EditorTools
                 patioWeedy = MakeTile("ground_patio_weedy", PlaceholderArt.PatioWeedy, Tile.ColliderType.None),
                 dirt = MakeTile("ground_dirt", PlaceholderArt.Dirt, Tile.ColliderType.None),
                 path = MakeTile("ground_path", PlaceholderArt.Path, Tile.ColliderType.None),
-                // "Grid" makes each tile a solid square, ignoring the gaps between pickets.
-                fenceIntact = MakeTile("fence_intact", PlaceholderArt.FenceIntact, Tile.ColliderType.Grid),
-                // Broken panels still block the player in M1, so nobody wanders off the map.
-                fenceBroken = MakeTile("fence_broken", PlaceholderArt.FenceBroken, Tile.ColliderType.Grid),
+                // Fence tiles are only pictures: their colliders are added separately by
+                // AddFenceColliders, so the player can step partly behind a fence.
+                fenceIntact = MakeTile("fence_intact", PlaceholderArt.FenceIntact, Tile.ColliderType.None),
+                fenceBroken = MakeTile("fence_broken", PlaceholderArt.FenceBroken, Tile.ColliderType.None),
+                // "Grid" makes each tile a solid square.
                 houseWall = MakeTile("wall_house", PlaceholderArt.HouseWall, Tile.ColliderType.Grid),
             };
         }
