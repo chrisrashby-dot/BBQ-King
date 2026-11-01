@@ -539,18 +539,32 @@ namespace BBQKing.EditorTools
             return c;
         }
 
-        /// <summary>A broken terracotta plant pot: a base and a few shards.</summary>
+        /// <summary>A cracked terracotta plant pot tipped on its side, soil spilling out, with a broken piece nearby.</summary>
         static PixelCanvas DrawRubbishPotBroken()
         {
             var c = new PixelCanvas(32, 32);
-            c.FillRect(10, 8, 10, 8, Terracotta);                // the lower half of the pot
-            c.FillRect(9, 16, 12, 2, TerracottaLight);           // its jagged rim
-            c.Set(12, 18, TerracottaLight); c.Set(16, 18, TerracottaLight);
-            for (int j = 8; j < 16; j++) c.Set(19, j, TerracottaDark);
-            c.FillRect(11, 14, 8, 2, DirtDark);                  // soil inside
-            c.FillRect(22, 7, 4, 3, Terracotta);                 // shards on the ground
-            c.FillRect(5, 9, 3, 2, TerracottaDark);
-            c.FillRect(23, 14, 3, 2, TerracottaLight);
+            // The pot lies with its base on the left and its open mouth on the right, widening towards the mouth.
+            for (int x = 6; x <= 18; x++)
+            {
+                int half = 4 + (x - 6) / 5;                      // 4 at the base, 6 at the mouth
+                for (int y = 14 - half; y <= 14 + half; y++) c.Set(x, y, Terracotta);
+                c.Set(x, 14 + half, TerracottaLight);            // lit along the top
+                c.Set(x, 14 - half, TerracottaDark);             // shaded underneath
+            }
+            c.FillRect(19, 7, 3, 15, TerracottaLight);           // the thick rim round the mouth
+            for (int y = 7; y < 22; y++) c.Set(21, y, TerracottaDark);
+            c.FillRect(17, 10, 2, 9, DirtDark);                  // dark soil just inside the mouth
+            // Soil spilling out onto the ground.
+            c.FillRect(22, 8, 4, 4, DirtMid);
+            c.FillRect(26, 8, 3, 2, DirtMid);
+            c.Set(23, 11, DirtLight); c.Set(27, 9, DirtLight); c.Set(24, 8, DirtDark);
+            // A crack across the pot.
+            int[] crackY = { 18, 17, 17, 16, 15, 15, 14 };
+            for (int i = 0; i < crackY.Length; i++) c.Set(9 + i, crackY[i], TerracottaDark);
+            // A curved broken piece in front.
+            c.FillRect(9, 4, 5, 2, Terracotta);
+            c.Set(8, 5, Terracotta); c.Set(14, 5, Terracotta);
+            for (int i = 9; i < 14; i++) c.Set(i, 5, TerracottaLight);
             AddOutline(c, Outline);
             return c;
         }
