@@ -1,5 +1,6 @@
 using BBQKing.Core;
 using BBQKing.Player;
+using BBQKing.Restoration;
 using BBQKing.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -95,7 +96,7 @@ namespace BBQKing.EditorTools
             light.intensity = 1f;
 
             // ---------- Map
-            var map = BuildMap(tiles);
+            var map = BuildMap(tiles, restoration.clearing);
             RestorationBuilder.PlaceOvergrowth(map, tiles, restoration);
             var clearing = RestorationBuilder.AddClearingSystem(map, restoration, messageChannel);
 
@@ -304,7 +305,7 @@ namespace BBQKing.EditorTools
 
         public struct MapRefs { public Tilemap ground, overgrowth, walls; }
 
-        static MapRefs BuildMap(TileSet tiles)
+        static MapRefs BuildMap(TileSet tiles, ClearingConfig clearing)
         {
             // Unity concept: a Grid lays out cells (here 1 x 1 world unit = 32 pixels), and each
             // Tilemap under it is a layer of tiles painted onto those cells.
@@ -323,7 +324,7 @@ namespace BBQKing.EditorTools
                 for (int x = map.xMin; x < map.xMax; x++)
                 {
                     var cell = new Vector2Int(x, y);
-                    ground.SetTile((Vector3Int)cell, GroundTileAt(cell, tiles));
+                    ground.SetTile((Vector3Int)cell, GroundTileAt(cell, tiles, clearing.patioWeedShare));
 
                     if (BackyardLayout.House.Contains(cell))
                         walls.SetTile((Vector3Int)cell, tiles.houseWall);
@@ -388,11 +389,11 @@ namespace BBQKing.EditorTools
             box.compositeOperation = Collider2D.CompositeOperation.Merge;
         }
 
-        static TileBase GroundTileAt(Vector2Int cell, TileSet tiles)
+        static TileBase GroundTileAt(Vector2Int cell, TileSet tiles, float patioWeedShare)
         {
             if (BackyardLayout.House.Contains(cell)) return tiles.dirt; // hidden behind the wall
             if (BackyardLayout.Patio.Contains(cell))
-                return Random01(cell) < BackyardLayout.PatioWeedShare ? tiles.patioWeedy : tiles.patioClean;
+                return Random01(cell) < patioWeedShare ? tiles.patioWeedy : tiles.patioClean;
             foreach (var path in BackyardLayout.Paths)
                 if (path.Contains(cell)) return tiles.path;
             if (BackyardLayout.SmokerCorner.Contains(cell) || BackyardLayout.ShedYard.Contains(cell)) return tiles.dirt;

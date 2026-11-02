@@ -33,6 +33,7 @@ namespace BBQKing.EditorTools
         const string JobFolder = "Assets/_Project/Data/Jobs/";
         const string JobBookPath = JobFolder + "JobBook.asset";
         const string Job1MessagePath = "Assets/_Project/Data/Messages/Job1Done.asset";
+        const string UiConfigPath = "Assets/_Project/Data/Settings/UiConfig.asset";
 
         /// <summary>The assets the Restoration parts of the scene share.</summary>
         public struct Assets
@@ -47,6 +48,7 @@ namespace BBQKing.EditorTools
             public ClearableData[] weeds;   // small, medium, large
             public ClearableData[] trash;   // bag, cans, broken pot
             public JobBook jobBook;
+            public UiConfig ui;            // hint and toolbar timings
         }
 
         /// <summary>Loads or creates the tool and clearing assets. Call after the scene has been created.</summary>
@@ -60,6 +62,7 @@ namespace BBQKing.EditorTools
                 toolUseChannel = PlaceholderAssetWriter.LoadOrCreateAsset<ToolUseEventChannel>(ToolUseChannelPath),
                 tileClearedChannel = PlaceholderAssetWriter.LoadOrCreateAsset<TileClearedEventChannel>(TileClearedChannelPath),
                 hintChannel = PlaceholderAssetWriter.LoadOrCreateAsset<StringEventChannel>(HintChannelPath),
+                ui = PlaceholderAssetWriter.LoadOrCreateAsset<UiConfig>(UiConfigPath),
             };
 
             // Weeds take one to three pulls by size and leave a clean slab behind; trash is one
@@ -253,7 +256,7 @@ namespace BBQKing.EditorTools
                     ClearableData what = null;
                     if (map.ground.GetTile((Vector3Int)cell) == tiles.patioWeedy)
                         what = a.weeds[Pick(cell, 11, a.weeds.Length)];
-                    else if (Random01(cell, 12) < BackyardLayout.PatioTrashShare)
+                    else if (Random01(cell, 12) < a.clearing.patioTrashShare)
                         what = a.trash[Pick(cell, 13, a.trash.Length)];
 
                     if (what != null) map.overgrowth.SetTile((Vector3Int)cell, what.tile);
@@ -337,6 +340,7 @@ namespace BBQKing.EditorTools
             var hint = root.gameObject.AddComponent<HintUI>();
             SetRef(hint, "hintChannel", a.hintChannel);
             SetRef(hint, "label", label);
+            SetRef(hint, "config", a.ui);
         }
 
         // Toolbar layout in art pixels: six 36 x 36 slots with a 2 pixel gap, along the bottom.
@@ -378,6 +382,7 @@ namespace BBQKing.EditorTools
             SetRef(toolbar, "normalFrame", LoadSprite(PlaceholderArt.UiSlot));
             SetRef(toolbar, "selectedFrame", LoadSprite(PlaceholderArt.UiSlotSelected));
             SetRef(toolbar, "nameLabel", name);
+            SetRef(toolbar, "config", a.ui);
         }
     }
 }

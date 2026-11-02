@@ -19,6 +19,7 @@ namespace BBQKing.Player
 
         IInteractable current;
         string lastPrompt;
+        string lastPromptSource; // the object's own prompt text the shown prompt was built from
         readonly Collider2D[] hits = new Collider2D[8];
 
         void OnEnable()
@@ -30,6 +31,7 @@ namespace BBQKing.Player
         {
             if (input != null) input.InteractPressed -= OnInteractPressed;
             current = null;
+            lastPromptSource = null;
             PostPrompt(string.Empty);
         }
 
@@ -39,7 +41,12 @@ namespace BBQKing.Player
             bool active = input != null && input.IsPlayerInputEnabled;
             current = active ? FindClosest() : null;
 
-            PostPrompt(current != null ? $"[{input.InteractKeyLabel}] {current.Prompt}" : string.Empty);
+            // Build the "[E] ..." text only when the prompt changes. Building it every frame would
+            // make a new string each time, which the garbage collector then has to tidy up.
+            string source = current?.Prompt;
+            if (source == lastPromptSource) return;
+            lastPromptSource = source;
+            PostPrompt(source != null ? $"[{input.InteractKeyLabel}] {source}" : string.Empty);
         }
 
         void OnInteractPressed()

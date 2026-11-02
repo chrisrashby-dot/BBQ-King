@@ -29,11 +29,8 @@ namespace BBQKing.UI
         [Tooltip("Shows the selected tool's name.")]
         [SerializeField] Text nameLabel;
 
-        [Tooltip("How big the slot grows when the tool changes (1 = no pulse).")]
-        [SerializeField, Range(1f, 2f)] float pulseScale = 1.3f;
-
-        [Tooltip("Seconds the slot takes to settle back to its normal size.")]
-        [SerializeField, Range(0.05f, 1f)] float pulseSeconds = 0.25f;
+        [Tooltip("How much and how long the slot pulses when the tool changes (Data/Settings/UiConfig).")]
+        [SerializeField] UiConfig config;
 
         int pulsingSlot = -1;
         float pulseStart;
@@ -86,8 +83,9 @@ namespace BBQKing.UI
         {
             if (pulsingSlot < 0 || pulsingSlot >= slotFrames.Length) return;
 
-            float t = Mathf.Clamp01((Time.unscaledTime - pulseStart) / pulseSeconds);
-            float scale = Mathf.Lerp(pulseScale, 1f, t);
+            // With no config the slot snaps straight back (t = 1), so there is simply no pulse.
+            float t = config != null ? Mathf.Clamp01((Time.unscaledTime - pulseStart) / config.toolPulseSeconds) : 1f;
+            float scale = Mathf.Lerp(config != null ? config.toolPulseScale : 1f, 1f, t);
             slotFrames[pulsingSlot].rectTransform.localScale = new Vector3(scale, scale, 1f);
             if (t >= 1f) pulsingSlot = -1;
         }

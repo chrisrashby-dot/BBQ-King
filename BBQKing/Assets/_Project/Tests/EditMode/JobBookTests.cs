@@ -72,6 +72,20 @@ namespace BBQKing.Tests
         }
 
         [Test]
+        public void AnEmptyJobFinishesWhenItUnlocks()
+        {
+            second.areas = new[] { new RectInt(5, 5, 1, 1) };
+            book.SetRemaining(second, 0); // nothing to clear, but still locked
+            var finished = new System.Collections.Generic.List<JobData>();
+            book.Completed += finished.Add;
+
+            book.MarkDone(first);
+
+            Assert.AreEqual(JobStatus.Done, book.StatusOf(second));
+            CollectionAssert.AreEqual(new[] { first, second }, finished, "the unlocked job finishes straight after");
+        }
+
+        [Test]
         public void JobCoveringFindsTheJobWhoseAreaHasTheTile()
         {
             Assert.AreEqual(first, book.JobCovering(new Vector2Int(2, 1)));

@@ -58,7 +58,10 @@ namespace BBQKing.Core
         /// </summary>
         public Vector2 AimScreenPosition { get; private set; }
 
-        /// <summary>True once the mouse has reported a position.</summary>
+        /// <summary>
+        /// True while the mouse is the device in use: set when the mouse moves, cleared when a
+        /// gamepad is used, so tools go back to aiming where the player faces.
+        /// </summary>
         public bool HasAim { get; private set; }
 
         /// <summary>True while the Player map is on (no panel open).</summary>
@@ -77,6 +80,10 @@ namespace BBQKing.Core
         const string KeyboardMouseGroup = "Keyboard and Mouse";
 
         BBQKingControls controls;
+
+        // How many panels or screens currently need the UI map (a letter, the jobs board, later a
+        // close-up). Walking only comes back when the last of them closes.
+        int openPanels;
 
         /// <summary>
         /// Creates the controls the first time anything asks for them. Done lazily rather than in
@@ -98,25 +105,45 @@ namespace BBQKing.Core
             }
         }
 
-        /// <summary>Normal play: walking, interacting and using tools.</summary>
+        /// <summary>
+        /// Normal play: walking, interacting and using tools. Called when a scene starts; it also
+        /// forgets any panels left open, since this asset keeps its state between Play sessions.
+        /// </summary>
         public void EnablePlayerInput()
         {
+            openPanels = 0;
             Controls.UI.Disable();
             Controls.Player.Enable();
         }
 
-        /// <summary>A panel is open: only submit and cancel work, and the player stands still.</summary>
-        public void EnableUIInput()
+        /// <summary>
+        /// A panel has opened: only submit and cancel work, and the player stands still. Every call
+        /// must be matched by one <see cref="ClosePanel"/>, so panels opened on top of each other
+        /// do not hand walking back while one of them is still showing.
+        /// </summary>
+        public void OpenPanel()
         {
+            openPanels++;
             Controls.Player.Disable();
             Controls.UI.Enable();
             Move = Vector2.zero;
             UseToolHeld = false;
         }
 
+        /// <summary>A panel has closed. Walking comes back once no panel is open.</summary>
+        public void ClosePanel()
+        {
+            if (openPanels > 0) openPanels--;
+            if (openPanels > 0) return;
+            Controls.UI.Disable();
+            Controls.Player.Enable();
+        }
+
         /// <summary>Turns all input off, for example while a scene is loading.</summary>
         public void DisableAllInput()
         {
+            openPanels = 0;
+            HasAim = false;
             if (controls == null) return;
             controls.Player.Disable();
             controls.UI.Disable();
@@ -139,16 +166,19 @@ namespace BBQKing.Core
 
         public void OnMove(InputAction.CallbackContext context)
         {
+            NoteDevice(context);
             Move = Vector2.ClampMagnitude(context.ReadValue<Vector2>(), 1f); // diagonals are not faster
         }
 
         public void OnInteract(InputAction.CallbackContext context)
         {
+            NoteDevice(context);
             if (context.performed) InteractPressed?.Invoke();
         }
 
         public void OnUseTool(InputAction.CallbackContext context)
         {
+            NoteDevice(context);
             if (context.performed) UseToolHeld = true;
             else if (context.canceled) UseToolHeld = false;
         }
@@ -205,5 +235,14 @@ namespace BBQKing.Core
 
         public void OnPoint(InputAction.CallbackContext context) { }  // read directly by the UI when needed
         public void OnClick(InputAction.CallbackContext context) { }  // read directly by the UI when needed
+
+        /// <summary>
+        /// Using a gamepad hands aiming back to the player's facing. The keyboard does not, because
+        /// keyboard players walk with WASD and aim with the mouse at the same time.
+        /// </summary>
+        void NoteDevice(InputAction.CallbackContext context)
+        {
+            if (context.control != null && context.control.device is Gamepad) HasAim = false;
+        }
     }
 }

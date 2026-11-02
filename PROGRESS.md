@@ -22,6 +22,17 @@ Claude Code updates this file at the end of every session. Newest entry at the t
 - Moved to a new laptop. The repository was cloned fresh, with Git LFS and Unity 6000.6.7f1 at the same path as before.
 - Batch-mode tests on the new laptop: 38 EditMode and 14 PlayMode tests pass, with no compiler errors or warnings.
 - The developer play-tested the M2 changes by hand (tools only next to the player, the highlight only over a weed or trash, the automatic tool choice with the growing toolbar slot). They all work, so **M2 is done**.
+- **Code review fixes** (one commit, all nine findings from a review of `Assets/_Project`):
+  1. Using a gamepad now hands aiming back to the faced tile. Before, once the mouse had moved, the gamepad never aimed again, and this carried over between Play sessions.
+  2. A clearing job that has nothing left when it unlocks now finishes straight away, instead of blocking every job after it.
+  3. Panels now call `InputReader.OpenPanel` and `ClosePanel`, which count open panels, so walking only comes back when the last one closes. This is needed for M3, where Job 2's completion message opens over the close-up.
+  4. Weeds and trash in a locked job's area are no longer highlighted and no longer switch the tool; clicking one still shows "That can wait for now." This only matters once a later job has a clearing area.
+  5. The patio weed and trash shares moved from `BackyardLayout.cs` into `ClearingConfig` (CLAUDE.md: no gameplay numbers in scripts).
+  6. The hint and toolbar pulse timings moved from scene objects into a new `Data/Settings/UiConfig` asset, so rebuilding the scene keeps them.
+  7. The interaction prompt is only rebuilt when it changes, not every frame.
+  8. The jobs board only rebuilds its list while it is open.
+  9. An empty toolbar no longer marks slot 1 as selected.
+- New tests: an empty job finishing when it unlocks, an empty toolbar (EditMode); stacked panels, gamepad aiming (PlayMode). One existing PlayMode test relied on the mouse position left over from the test before and now moves the mouse first. 40 EditMode and 16 PlayMode tests pass in batch mode.
 
 Next: **M3 Cleaning** (close-up scrubbing scene, Job 2 the kettle grill, 95% rule).
 
@@ -63,14 +74,14 @@ Next: **M2 Restoration** (tile clearing with tools, Job 1, the jobs board).
 M2 decisions from the developer (1 Nov 2026):
 - **Gloves and trash bag are two separate tools:** gloves pull weeds, the trash bag picks up trash. Recorded in design.md section 5.2.
 - **"Trash bag", not "bin bag":** the American term, for the setting.
-- **Targeting:** changed after the play-test on 2 Nov 2026, at the developer's request: with a mouse, clicks only work on the tiles touching the player's tile (diagonals included) and the highlight only shows while the pointer is over one. The highlight no longer runs ahead of the player. A gamepad still uses the faced tile. Later the same day, also at the developer's request: the highlight only shows over a weed or piece of trash, the right tool is picked automatically when the player points at one, and its toolbar slot briefly grows (size and time are on the Toolbar's `ToolbarUI` component). Choosing by hand with 1 to 6 or the wheel still works.
+- **Targeting:** changed after the play-test on 2 Nov 2026, at the developer's request: with a mouse, clicks only work on the tiles touching the player's tile (diagonals included) and the highlight only shows while the pointer is over one. The highlight no longer runs ahead of the player. A gamepad still uses the faced tile. Later the same day, also at the developer's request: the highlight only shows over a weed or piece of trash, the right tool is picked automatically when the player points at one, and its toolbar slot briefly grows (size and time are in `Data/Settings/UiConfig` since 2 Nov 2026). Choosing by hand with 1 to 6 or the wheel still works.
 - **Job complete:** when every tile in the job is cleared (the 95% rule stays for close-up scrubbing).
 - **Weekend counter:** waits for M4.
 
 ## Questions for the developer
 
 - **design.md is the master design document (2 Nov 2026):** the developer retired the separate master copy. The M2 design changes (separate gloves and trash bag, "trash bag" wording, tools only next to the player, automatic tool choice, the clearing completion rule) are in design.md with decision log rows, so nothing needs copying. CLAUDE.md is updated to match.
-- **M2 starting values to tune (design.md does not set them):** small, medium and large weeds take 1, 2 and 3 pulls; each piece of trash takes 1; 45% of patio slabs start weedy and 15% of the rest have trash; tool reach 1 tile around the player's tile; holding the button uses the tool every 0.3 seconds. All are in data assets (see the README) except the two shares, which are in `Editor/BackyardLayout.cs`.
+- **M2 starting values to tune (design.md does not set them):** small, medium and large weeds take 1, 2 and 3 pulls; each piece of trash takes 1; 45% of patio slabs start weedy and 15% of the rest have trash; tool reach 1 tile around the player's tile; holding the button uses the tool every 0.3 seconds. All are in data assets (see the README); the two shares moved into `ClearingConfig` on 2 Nov 2026.
 - **Jobs and events:** each job currently needs only the job before it. In design.md section 4.3, events come between some jobs (for example Event 1 before Job 3); that link arrives with events in M4.
 - **Job 1 completion text:** "Patio cleared!" in `Data/Messages/Job1Done` is marked as placeholder text. Job 1 also unlocks the grilled corn recipe card (section 4.5); recipe cards arrive in M7.
 - **Reference resolution (answered 1 Nov 2026):** 960x540 chosen after testing. design.md and CLAUDE.md are both updated.

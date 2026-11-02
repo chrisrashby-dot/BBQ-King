@@ -39,13 +39,19 @@ namespace BBQKing.Player
         Camera cam;
         float nextUseTime;
         Vector2Int? toolPickedFor; // the tile the tool was last switched for
+        bool aimedAtSomething;     // a weed or trash is in reach, even if its job is still locked
 
         void Start() => cam = Camera.main;
 
         void Update()
         {
             var what = FindTarget();
-            HasTarget = what != null;
+            aimedAtSomething = what != null;
+
+            // Something in a locked job's area cannot be cleared yet, so it gets no highlight and
+            // does not change the tool in hand. Clicking it still posts a use, so the clearing
+            // system can explain with its "That can wait for now." hint.
+            HasTarget = aimedAtSomething && !clearing.IsLocked(TargetCell);
 
             if (!HasTarget) toolPickedFor = null;
             else if (toolPickedFor != TargetCell)
@@ -83,7 +89,7 @@ namespace BBQKing.Player
         void UseToolWhileHeld()
         {
             // Letting go resets the timer, so the next press always acts straight away.
-            if (!HasTarget || toolBelt.CurrentTool == null || !input.UseToolHeld)
+            if (!aimedAtSomething || toolBelt.CurrentTool == null || !input.UseToolHeld)
             {
                 nextUseTime = 0f;
                 return;

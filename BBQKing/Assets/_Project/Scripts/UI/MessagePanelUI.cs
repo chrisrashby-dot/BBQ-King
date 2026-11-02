@@ -44,15 +44,17 @@ namespace BBQKing.UI
             if (message == null || panel == null) return;
             if (titleLabel != null) titleLabel.text = message.title;
             if (bodyLabel != null) bodyLabel.text = message.body;
+            // A second message while one is showing replaces the text; it is still one open panel.
+            if (IsOpen) return;
             panel.SetActive(true);
-            if (input != null) input.EnableUIInput();
+            if (input != null) input.OpenPanel();
         }
 
         void Close()
         {
             if (!IsOpen) return;
             panel.SetActive(false);
-            if (input != null) input.EnablePlayerInput();
+            if (input != null) input.ClosePanel();
         }
     }
 }

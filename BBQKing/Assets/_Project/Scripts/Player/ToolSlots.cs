@@ -10,12 +10,13 @@ namespace BBQKing.Player
         /// <summary>How many slots hold a tool.</summary>
         public int Count { get; }
 
-        /// <summary>The selected slot, counting from 0.</summary>
+        /// <summary>The selected slot, counting from 0, or -1 if there are no tools.</summary>
         public int Selected { get; private set; }
 
         public ToolSlots(int count)
         {
             Count = count < 0 ? 0 : count;
+            Selected = Count > 0 ? 0 : -1;
         }
 
         /// <summary>Selects a slot by its key number (1 to 6). Returns true if the selection changed.</summary>

@@ -87,7 +87,9 @@ namespace BBQKing.Tests
         public IEnumerator PointingAtTrashPicksTheTrashBag()
         {
             var cell = StandAbove("Trash bag");
-            yield return Frames(2);
+            // Use the mouse from the start; otherwise the gamepad rule would aim at the faced
+            // tile, which is the trash, and pick the trash bag before the test points at it.
+            yield return PointAway();
             Assert.AreEqual("Gloves", toolBelt.CurrentTool.displayName, "the gloves are in hand at the start");
             yield return PointAt(cell);
             Assert.AreEqual("Trash bag", toolBelt.CurrentTool.displayName);

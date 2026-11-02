@@ -59,11 +59,8 @@ namespace BBQKing.EditorTools
         /// </summary>
         public const float FenceFootingDepth = 18f / 32f;
 
-        /// <summary>Roughly what share of patio slabs start with weeds, 0 to 1.</summary>
-        public const float PatioWeedShare = 0.45f;
-
-        /// <summary>Roughly what share of the other patio slabs start with trash on them, 0 to 1.</summary>
-        public const float PatioTrashShare = 0.15f;
+        // How many patio slabs start weedy or with trash is a gameplay value, so it lives in
+        // Data/Restoration/ClearingConfig.asset (patioWeedShare and patioTrashShare).
 
         /// <summary>True for the cells around the outside edge that get a fence (not where the house is).</summary>
         public static bool IsFence(int x, int y)

@@ -77,6 +77,19 @@ namespace BBQKing.Tests
             yield return Frames(2);
         }
 
+        /// <summary>
+        /// Moves the mouse to the bottom-left corner of the screen, far out of the player's reach.
+        /// The mouse is then the aiming device, but nothing is aimed at.
+        /// </summary>
+        protected IEnumerator PointAway()
+        {
+            // Not (0, 0): a new pretend mouse already sits there, and only a change of position
+            // counts as the mouse moving.
+            mouseScreen = new Vector2(2f, 2f);
+            InputSystem.QueueStateEvent(mouse, new MouseState { position = mouseScreen });
+            yield return Frames(2);
+        }
+
         /// <summary>Holds the left button wherever the pointer is.</summary>
         protected IEnumerator HoldLeftMouse(float seconds)
         {

@@ -25,7 +25,7 @@ The game itself. Design decisions live in `../design.md`, working rules in `../C
 | Jobs board | Tab (gamepad Select) |
 | Close a letter, note or the jobs board | E, Escape, Tab or right mouse button (gamepad B) |
 
-Point the mouse at a weed or piece of trash next to the player (diagonals included, or on the tile they stand on): a highlight appears over it, the right tool is picked for you and its toolbar slot briefly grows so you can see the change. Clicking works on that tile. Empty tiles get no highlight, and clicking further away does nothing, so walk up to what you want to clear. You can still pick a tool by hand while pointing; it stays until you point at a different tile. With a gamepad, the same happens for the tile the player is facing.
+Point the mouse at a weed or piece of trash next to the player (diagonals included, or on the tile they stand on): a highlight appears over it, the right tool is picked for you and its toolbar slot briefly grows so you can see the change. Clicking works on that tile. Empty tiles get no highlight, and neither do weeds and trash in the area of a job that is still locked (clicking one says "That can wait for now."). Clicking further away does nothing, so walk up to what you want to clear. You can still pick a tool by hand while pointing; it stays until you point at a different tile. With a gamepad, the same happens for the tile the player is facing.
 
 ### Playing Job 1 (Clear the patio)
 
@@ -64,16 +64,17 @@ All gameplay values live in assets under `Assets/_Project/Data/`, not in scripts
 | `Data/Characters/PlayerSprites` | The walk frames for each direction |
 | `Data/Messages/RelativeLetter`, `BackDoor`, `Job1Done` | The text shown for the letter, the door and finishing Job 1 |
 | `Data/Settings/DisplayConfig` | Reference resolution |
+| `Data/Settings/UiConfig` | How long hints show (2 seconds) and fade (0.5 seconds), and how much (1.3 times) and how long (0.25 seconds) a toolbar slot grows when the tool changes |
 | `Data/Tools/Gloves`, `TrashBag` | Each tool's name and toolbar icon |
 | `Data/Tools/BackyardTools` | Which tools are on the toolbar, in slot order (up to 6) |
 | `Data/Restoration/Clearables/*` | For each kind of weed or trash: its tile, the tool that clears it, how many uses it takes (1 to 3) and the ground left behind |
-| `Data/Restoration/ClearingConfig` | The list of clearables, the hint texts and how much a weed shrinks with each pull |
+| `Data/Restoration/ClearingConfig` | The list of clearables, the hint texts, how much a weed shrinks with each pull, and how many patio slabs start weedy (45%) and how many of the rest have trash (15%). The last two only take effect when the scene is rebuilt |
 | `Data/Jobs/Job1_ClearThePatio` and the others | Each job's title, description, the jobs it needs first, its clearing area and its completion message |
 | `Data/Jobs/JobBook` | Which jobs exist, in jobs board order |
 
 The starting values in PlayerConfig and the clearables are first guesses, because design.md does not set them. Tune them by feel.
 
-Wording on the HUD and jobs board ("To do", "Locked", "{0} left") is set on the **Job HUD** and **Jobs Board** objects in the scene, and the hint timing on the **Hint** object. Rebuilding the scene resets those, so change them in the builder if you want to keep them.
+Wording on the HUD and jobs board ("To do", "Locked", "{0} left") is set on the **Job HUD** and **Jobs Board** objects in the scene. Rebuilding the scene resets those, so change them in the builder if you want to keep them.
 
 The letter text is a clearly marked placeholder, because the relative's name is still an open question in design.md.
 
@@ -102,7 +103,7 @@ Assets/_Project/
 
 ### How the pieces talk to each other
 
-- **Input:** scripts never read the keyboard directly. They all share the `InputReader` asset, which turns `BBQKingControls` into simple values (`Move`) and events (`InteractPressed`). It has two action maps: **Player** for walking about, and **UI** while a panel is open, so opening a letter stops the player walking off.
+- **Input:** scripts never read the keyboard directly. They all share the `InputReader` asset, which turns `BBQKingControls` into simple values (`Move`) and events (`InteractPressed`). It has two action maps: **Player** for walking about, and **UI** while a panel is open, so opening a letter stops the player walking off. Panels call `OpenPanel` and `ClosePanel`, which count how many are open, so walking only comes back when the last one closes. Moving the mouse makes it the aiming device; using a gamepad hands aiming back to the tile the player faces.
 - **Events:** systems post to **event channel** assets in `Data/Events` instead of holding references to each other. For example, `PlayerInteractor` posts the prompt text to `InteractionPromptChannel`, and `InteractionPromptUI` listens. Neither knows the other exists, so either can be swapped out.
 - **Interactables:** anything with a component implementing `IInteractable` and a Collider2D can be used with E. `MessageInteractable` is the simplest kind: it posts a `MessageData` to `ShowMessageChannel`, and `MessagePanelUI` shows it.
 - **Tools and clearing:** the player's `ToolBelt` posts the selected slot to `SelectedToolSlotChannel` (the toolbar listens). `ToolUser` picks the target tile and posts each use to `ToolUseChannel`. The `ClearingSystem` (on the **Restoration** object) hears it, checks the tool against the tile's `ClearableData`, clears the tile and posts to `TileClearedChannel`; wrong tools post a hint to `HintChannel`.
@@ -114,7 +115,7 @@ The scene, tiles, placeholder art, prefabs and data assets are created by `Asset
 
 - It **replaces** `Backyard.unity` (it asks first), so hand edits to the scene are lost.
 - It **never overwrites** existing PNGs, data assets or prefabs, so replaced art and tuned values are safe.
-- The map layout is in `Editor/BackyardLayout.cs`, including how many patio slabs start weedy (45%) and how many of the rest have trash (15%). The weeds and trash are placed the same way every time.
+- The map layout is in `Editor/BackyardLayout.cs`. How many patio slabs start weedy or with trash is in `Data/Restoration/ClearingConfig`. The weeds and trash are placed the same way every time.
 
 You only need it if the scene gets into a muddle, or after changing the layout in code. You can also paint tiles by hand with **Window > 2D > Tile Palette**.
 

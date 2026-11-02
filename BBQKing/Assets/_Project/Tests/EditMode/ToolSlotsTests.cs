@@ -13,6 +13,15 @@ namespace BBQKing.Tests
         }
 
         [Test]
+        public void NothingIsSelectedWithNoTools()
+        {
+            var slots = new ToolSlots(0);
+            Assert.AreEqual(-1, slots.Selected);
+            Assert.IsFalse(slots.SelectKey(1));
+            Assert.IsFalse(slots.Cycle(1));
+        }
+
+        [Test]
         public void NumberKeySelectsItsSlot()
         {
             var slots = new ToolSlots(2);

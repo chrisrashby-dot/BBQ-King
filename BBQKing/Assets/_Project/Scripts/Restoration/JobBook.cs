@@ -87,6 +87,19 @@ namespace BBQKing.Restoration
             if (!done.Add(job)) return;
             Completed?.Invoke(job);
             Changed?.Invoke();
+            FinishEmptyJobs();
+        }
+
+        /// <summary>
+        /// A clearing job can reach 0 left while it is still locked (for example if its area has
+        /// nothing in it). Finishing a job may unlock it, so check again here; otherwise it would
+        /// sit at "To do" forever and lock every job after it.
+        /// </summary>
+        void FinishEmptyJobs()
+        {
+            foreach (var job in jobs)
+                if (job != null && RemainingIn(job) == 0 && StatusOf(job) == JobStatus.Available)
+                    MarkDone(job); // may unlock and finish further jobs in turn
         }
     }
 }

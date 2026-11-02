@@ -13,11 +13,8 @@ namespace BBQKing.UI
         [SerializeField] StringEventChannel hintChannel;
         [SerializeField] Text label;
 
-        [Tooltip("Seconds the hint stays fully visible.")]
-        [SerializeField] float showSeconds = 2f;
-
-        [Tooltip("Seconds it takes to fade out afterwards.")]
-        [SerializeField] float fadeSeconds = 0.5f;
+        [Tooltip("How long hints show and fade (Data/Settings/UiConfig).")]
+        [SerializeField] UiConfig config;
 
         float shownAt = float.NegativeInfinity;
 
@@ -42,6 +39,8 @@ namespace BBQKing.UI
 
         void Update()
         {
+            if (config == null) return;
+            float showSeconds = config.hintShowSeconds, fadeSeconds = config.hintFadeSeconds;
             float age = Time.time - shownAt;
             if (age <= showSeconds) return;
             SetAlpha(fadeSeconds > 0f ? 1f - Mathf.Clamp01((age - showSeconds) / fadeSeconds) : 0f);

@@ -21,5 +21,14 @@ namespace BBQKing.Restoration
         [Tooltip("How much smaller a tile gets with each use before it clears (0.15 = 15%), so " +
                  "the player can see a big weed coming loose.")]
         [Range(0f, 0.3f)] public float shrinkPerAction = 0.15f;
+
+        // Only read by the Backyard scene builder, when it lays out the patio. Change these, then
+        // rebuild the scene (BBQ King > Build Backyard Scene) to see the difference.
+        [Header("Starting patio (used when the scene is built)")]
+        [Tooltip("Roughly what share of patio slabs start with weeds, 0 to 1.")]
+        [Range(0f, 1f)] public float patioWeedShare = 0.45f;
+
+        [Tooltip("Roughly what share of the other patio slabs start with trash on them, 0 to 1.")]
+        [Range(0f, 1f)] public float patioTrashShare = 0.15f;
     }
 }

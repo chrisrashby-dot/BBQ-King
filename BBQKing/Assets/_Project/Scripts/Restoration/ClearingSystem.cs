@@ -57,13 +57,19 @@ namespace BBQKing.Restoration
             return tile != null && byTile.TryGetValue(tile, out var c) ? c : null;
         }
 
+        /// <summary>True if the cell is in the area of a job that is still locked, so it cannot be cleared yet.</summary>
+        public bool IsLocked(Vector2Int cell)
+        {
+            var job = jobBook != null ? jobBook.JobCovering(cell) : null;
+            return job != null && jobBook.StatusOf(job) == JobStatus.Locked;
+        }
+
         void OnToolUsed(ToolUse use)
         {
             var what = ClearableAt(use.cell);
             if (what == null) return; // nothing here to clear
 
-            var job = jobBook != null ? jobBook.JobCovering(use.cell) : null;
-            if (job != null && jobBook.StatusOf(job) == JobStatus.Locked)
+            if (IsLocked(use.cell))
             {
                 Hint(config.notYetHint);
                 return;

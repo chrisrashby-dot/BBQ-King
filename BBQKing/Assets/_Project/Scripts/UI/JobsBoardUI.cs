@@ -43,7 +43,7 @@ namespace BBQKing.UI
                 input.UICancelPressed += Close;
                 input.SubmitPressed += Close;
             }
-            if (jobBook != null) jobBook.Changed += Refresh;
+            if (jobBook != null) jobBook.Changed += OnJobBookChanged;
         }
 
         void OnDisable()
@@ -54,7 +54,7 @@ namespace BBQKing.UI
                 input.UICancelPressed -= Close;
                 input.SubmitPressed -= Close;
             }
-            if (jobBook != null) jobBook.Changed -= Refresh;
+            if (jobBook != null) jobBook.Changed -= OnJobBookChanged;
         }
 
         void Open()
@@ -62,14 +62,21 @@ namespace BBQKing.UI
             if (panel == null || IsOpen) return;
             Refresh();
             panel.SetActive(true);
-            if (input != null) input.EnableUIInput();
+            if (input != null) input.OpenPanel();
         }
 
         void Close()
         {
             if (!IsOpen) return;
             panel.SetActive(false);
-            if (input != null) input.EnablePlayerInput();
+            if (input != null) input.ClosePanel();
+        }
+
+        // The list is rebuilt when the board opens, so a hidden board can ignore changes (every
+        // cleared weed raises one).
+        void OnJobBookChanged()
+        {
+            if (IsOpen) Refresh();
         }
 
         void Refresh()
