@@ -8,4 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Project/Scenes/Backyard.unity
     guid: 5342ed39951b9d54f97a8ad88d6235ca
+  - enabled: 1
+    path: Assets/_Project/Scenes/CloseUp_Cleaning.unity
+    guid: f4e872a51e14f164b9c1246728fc4dc1
   m_configObjects: {}

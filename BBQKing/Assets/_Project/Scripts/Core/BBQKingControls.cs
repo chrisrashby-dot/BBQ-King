@@ -740,6 +740,99 @@ namespace BBQKing.Core
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""CloseUp"",
+            ""id"": ""da7dc494-9aa4-43a1-9d82-56ad8d6f3ca5"",
+            ""actions"": [
+                {
+                    ""name"": ""Scrub"",
+                    ""type"": ""Button"",
+                    ""id"": ""3b6872a0-ee21-49a8-8a8c-f3b288b312e3"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Aim"",
+                    ""type"": ""PassThrough"",
+                    ""id"": ""9fad6b97-434e-40aa-b6e7-3506b6bb01c5"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                },
+                {
+                    ""name"": ""Leave"",
+                    ""type"": ""Button"",
+                    ""id"": ""78e12302-4b83-4b5d-bcfe-26c0dac518ba"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false,
+                    ""priority"": 0
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""9582c589-7919-4a17-b413-2c27710b78b1"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Scrub"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f5609611-2983-439e-a377-44ac8c5e24a5"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Scrub"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b3e02347-08b2-464e-833f-a46438d07077"",
+                    ""path"": ""<Mouse>/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Aim"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2ced1458-c569-4fb5-83dc-59ef56e020fb"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Keyboard and Mouse"",
+                    ""action"": ""Leave"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d8388760-9e1d-4e2b-a296-d5b465f7b361"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Gamepad"",
+                    ""action"": ""Leave"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -790,12 +883,18 @@ namespace BBQKing.Core
             m_UI_Cancel = m_UI.FindAction("Cancel", throwIfNotFound: true);
             m_UI_Point = m_UI.FindAction("Point", throwIfNotFound: true);
             m_UI_Click = m_UI.FindAction("Click", throwIfNotFound: true);
+            // CloseUp
+            m_CloseUp = asset.FindActionMap("CloseUp", throwIfNotFound: true);
+            m_CloseUp_Scrub = m_CloseUp.FindAction("Scrub", throwIfNotFound: true);
+            m_CloseUp_Aim = m_CloseUp.FindAction("Aim", throwIfNotFound: true);
+            m_CloseUp_Leave = m_CloseUp.FindAction("Leave", throwIfNotFound: true);
         }
 
         ~@BBQKingControls()
         {
             UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, BBQKingControls.Player.Disable() has not been called.");
             UnityEngine.Debug.Assert(!m_UI.enabled, "This will cause a leak and performance issues, BBQKingControls.UI.Disable() has not been called.");
+            UnityEngine.Debug.Assert(!m_CloseUp.enabled, "This will cause a leak and performance issues, BBQKingControls.CloseUp.Disable() has not been called.");
         }
 
         /// <summary>
@@ -1191,6 +1290,124 @@ namespace BBQKing.Core
         /// Provides a new <see cref="UIActions" /> instance referencing this action map.
         /// </summary>
         public UIActions @UI => new UIActions(this);
+
+        // CloseUp
+        private readonly InputActionMap m_CloseUp;
+        private List<ICloseUpActions> m_CloseUpActionsCallbackInterfaces = new List<ICloseUpActions>();
+        private readonly InputAction m_CloseUp_Scrub;
+        private readonly InputAction m_CloseUp_Aim;
+        private readonly InputAction m_CloseUp_Leave;
+        /// <summary>
+        /// Provides access to input actions defined in input action map "CloseUp".
+        /// </summary>
+        public struct CloseUpActions
+        {
+            private @BBQKingControls m_Wrapper;
+
+            /// <summary>
+            /// Construct a new instance of the input action map wrapper class.
+            /// </summary>
+            public CloseUpActions(@BBQKingControls wrapper) { m_Wrapper = wrapper; }
+            /// <summary>
+            /// Provides access to the underlying input action "CloseUp/Scrub".
+            /// </summary>
+            public InputAction @Scrub => m_Wrapper.m_CloseUp_Scrub;
+            /// <summary>
+            /// Provides access to the underlying input action "CloseUp/Aim".
+            /// </summary>
+            public InputAction @Aim => m_Wrapper.m_CloseUp_Aim;
+            /// <summary>
+            /// Provides access to the underlying input action "CloseUp/Leave".
+            /// </summary>
+            public InputAction @Leave => m_Wrapper.m_CloseUp_Leave;
+            /// <summary>
+            /// Provides access to the underlying input action map instance.
+            /// </summary>
+            public InputActionMap Get() { return m_Wrapper.m_CloseUp; }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+            public void Enable() { Get().Enable(); }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+            public void Disable() { Get().Disable(); }
+            /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+            public bool enabled => Get().enabled;
+            /// <summary>
+            /// Implicitly converts an <see ref="CloseUpActions" /> to an <see ref="InputActionMap" /> instance.
+            /// </summary>
+            public static implicit operator InputActionMap(CloseUpActions set) { return set.Get(); }
+            /// <summary>
+            /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+            /// </summary>
+            /// <param name="instance">Callback instance.</param>
+            /// <remarks>
+            /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+            /// </remarks>
+            /// <seealso cref="CloseUpActions" />
+            public void AddCallbacks(ICloseUpActions instance)
+            {
+                if (instance == null || m_Wrapper.m_CloseUpActionsCallbackInterfaces.Contains(instance)) return;
+                m_Wrapper.m_CloseUpActionsCallbackInterfaces.Add(instance);
+                @Scrub.started += instance.OnScrub;
+                @Scrub.performed += instance.OnScrub;
+                @Scrub.canceled += instance.OnScrub;
+                @Aim.started += instance.OnAim;
+                @Aim.performed += instance.OnAim;
+                @Aim.canceled += instance.OnAim;
+                @Leave.started += instance.OnLeave;
+                @Leave.performed += instance.OnLeave;
+                @Leave.canceled += instance.OnLeave;
+            }
+
+            /// <summary>
+            /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+            /// </summary>
+            /// <remarks>
+            /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+            /// </remarks>
+            /// <seealso cref="CloseUpActions" />
+            private void UnregisterCallbacks(ICloseUpActions instance)
+            {
+                @Scrub.started -= instance.OnScrub;
+                @Scrub.performed -= instance.OnScrub;
+                @Scrub.canceled -= instance.OnScrub;
+                @Aim.started -= instance.OnAim;
+                @Aim.performed -= instance.OnAim;
+                @Aim.canceled -= instance.OnAim;
+                @Leave.started -= instance.OnLeave;
+                @Leave.performed -= instance.OnLeave;
+                @Leave.canceled -= instance.OnLeave;
+            }
+
+            /// <summary>
+            /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="CloseUpActions.UnregisterCallbacks(ICloseUpActions)" />.
+            /// </summary>
+            /// <seealso cref="CloseUpActions.UnregisterCallbacks(ICloseUpActions)" />
+            public void RemoveCallbacks(ICloseUpActions instance)
+            {
+                if (m_Wrapper.m_CloseUpActionsCallbackInterfaces.Remove(instance))
+                    UnregisterCallbacks(instance);
+            }
+
+            /// <summary>
+            /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+            /// </summary>
+            /// <remarks>
+            /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+            /// </remarks>
+            /// <seealso cref="CloseUpActions.AddCallbacks(ICloseUpActions)" />
+            /// <seealso cref="CloseUpActions.RemoveCallbacks(ICloseUpActions)" />
+            /// <seealso cref="CloseUpActions.UnregisterCallbacks(ICloseUpActions)" />
+            public void SetCallbacks(ICloseUpActions instance)
+            {
+                foreach (var item in m_Wrapper.m_CloseUpActionsCallbackInterfaces)
+                    UnregisterCallbacks(item);
+                m_Wrapper.m_CloseUpActionsCallbackInterfaces.Clear();
+                AddCallbacks(instance);
+            }
+        }
+        /// <summary>
+        /// Provides a new <see cref="CloseUpActions" /> instance referencing this action map.
+        /// </summary>
+        public CloseUpActions @CloseUp => new CloseUpActions(this);
         private int m_KeyboardandMouseSchemeIndex = -1;
         /// <summary>
         /// Provides access to the input control scheme.
@@ -1330,6 +1547,35 @@ namespace BBQKing.Core
             /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
             /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
             void OnClick(InputAction.CallbackContext context);
+        }
+        /// <summary>
+        /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "CloseUp" which allows adding and removing callbacks.
+        /// </summary>
+        /// <seealso cref="CloseUpActions.AddCallbacks(ICloseUpActions)" />
+        /// <seealso cref="CloseUpActions.RemoveCallbacks(ICloseUpActions)" />
+        public interface ICloseUpActions
+        {
+            /// <summary>
+            /// Method invoked when associated input action "Scrub" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnScrub(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Aim" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnAim(InputAction.CallbackContext context);
+            /// <summary>
+            /// Method invoked when associated input action "Leave" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+            /// </summary>
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+            /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+            void OnLeave(InputAction.CallbackContext context);
         }
     }
 }

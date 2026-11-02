@@ -4,6 +4,7 @@ using BBQKing.Restoration;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 
@@ -82,6 +83,41 @@ namespace BBQKing.Tests
             session.OpenRequested -= listen;
             Assert.IsNotNull(asked, "E should ask for the kettle grill's close-up");
             Assert.AreEqual(jobBook.Jobs[1], asked.job);
+        }
+
+        const string CloseUpScene = "CloseUp_Cleaning";
+
+        /// <summary>Finishes Job 1, walks up to the grill and presses E, waiting for the close-up to load.</summary>
+        IEnumerator OpenTheCloseUp()
+        {
+            yield return FinishJob1();
+            yield return StandAboveTheGrill();
+            yield return Hold(Key.E, 0.05f);
+            float giveUp = Time.time + 5f;
+            while (!SceneManager.GetSceneByName(CloseUpScene).isLoaded && Time.time < giveUp) yield return null;
+            yield return Frames(2);
+        }
+
+        [UnityTest]
+        public IEnumerator TheCloseUpOpensOverTheBackyardAndEscapeLeavesIt()
+        {
+            var backyardUi = GameObject.Find("UI").GetComponent<Canvas>();
+            yield return OpenTheCloseUp();
+
+            Assert.IsTrue(SceneManager.GetSceneByName(CloseUpScene).isLoaded, "E should open the close-up");
+            Assert.IsTrue(input.IsCloseUpInputEnabled, "the close-up controls should be on");
+            Assert.IsFalse(input.IsPlayerInputEnabled, "the player should not walk about behind the close-up");
+            Assert.IsFalse(backyardUi.enabled, "the backyard HUD and toolbar should be hidden");
+            var closeUp = Object.FindAnyObjectByType<CleaningCloseUp>();
+            Assert.AreEqual("Clean the kettle grill", GameObject.Find("Close-up UI/Title").GetComponent<Text>().text);
+            Assert.AreEqual(jobBook.Jobs[1], closeUp.Cleaning.job);
+
+            yield return Hold(Key.Escape, 0.05f);
+            yield return Frames(3);
+            Assert.IsFalse(SceneManager.GetSceneByName(CloseUpScene).isLoaded, "Escape should leave the close-up");
+            Assert.IsTrue(input.IsPlayerInputEnabled, "walking should come back");
+            Assert.IsTrue(backyardUi.enabled, "the backyard UI should come back");
+            Assert.AreEqual(JobStatus.Available, jobBook.StatusOf(jobBook.Jobs[1]), "leaving early does not finish the job");
         }
     }
 }

@@ -16,13 +16,15 @@ namespace BBQKing.Core
     /// reader turns it into simple values and C# events, so gameplay scripts never deal with
     /// Input System details or care whether a keyboard or a gamepad is in use.
     ///
-    /// Two action maps are used:
+    /// Three action maps are used:
     /// - Player: walking about the backyard (move, interact, tools and so on).
     /// - UI: while a panel such as a letter is open (submit and cancel only).
-    /// Only one map is active at a time, so opening a panel stops the player walking off.
+    /// - CloseUp: while a close-up such as cleaning the grill is open (scrub, aim and leave).
+    /// Only one map is active at a time: a panel wins over a close-up, which wins over walking.
     /// </summary>
     [CreateAssetMenu(fileName = "InputReader", menuName = "BBQ King/Input Reader")]
-    public class InputReader : ScriptableObject, BBQKingControls.IPlayerActions, BBQKingControls.IUIActions
+    public class InputReader : ScriptableObject, BBQKingControls.IPlayerActions, BBQKingControls.IUIActions,
+        BBQKingControls.ICloseUpActions
     {
         // ----- Player map
         /// <summary>Interact key (E) pressed: pick up, use, open a close-up.</summary>
@@ -46,6 +48,13 @@ namespace BBQKing.Core
         /// <summary>Close a panel (Escape, right mouse button or gamepad B).</summary>
         public event Action UICancelPressed;
 
+        // ----- CloseUp map
+        /// <summary>Leave the close-up (Escape or gamepad B).</summary>
+        public event Action LeaveCloseUpPressed;
+
+        /// <summary>True while the scrub button (left mouse) is held in a close-up.</summary>
+        public bool ScrubHeld { get; private set; }
+
         /// <summary>Movement direction, length 0 to 1. Zero while a panel is open.</summary>
         public Vector2 Move { get; private set; }
 
@@ -64,8 +73,11 @@ namespace BBQKing.Core
         /// </summary>
         public bool HasAim { get; private set; }
 
-        /// <summary>True while the Player map is on (no panel open).</summary>
+        /// <summary>True while the Player map is on (no panel or close-up open).</summary>
         public bool IsPlayerInputEnabled => controls != null && controls.Player.enabled;
+
+        /// <summary>True while the CloseUp map is on (a close-up is open and no panel is over it).</summary>
+        public bool IsCloseUpInputEnabled => controls != null && controls.CloseUp.enabled;
 
         /// <summary>
         /// The key shown in prompts for Interact, such as "E". Read from the input asset, so the
@@ -81,9 +93,12 @@ namespace BBQKing.Core
 
         BBQKingControls controls;
 
-        // How many panels or screens currently need the UI map (a letter, the jobs board, later a
-        // close-up). Walking only comes back when the last of them closes.
+        // How many panels currently need the UI map (a letter, the jobs board). Walking, or the
+        // close-up, only comes back when the last of them closes.
         int openPanels;
+
+        // True while a close-up scene is open over the backyard.
+        bool inCloseUp;
 
         /// <summary>
         /// Creates the controls the first time anything asks for them. Done lazily rather than in
@@ -100,6 +115,7 @@ namespace BBQKing.Core
                     // Tell the generated class to call this object's OnMove, OnInteract and so on.
                     controls.Player.SetCallbacks(this);
                     controls.UI.SetCallbacks(this);
+                    controls.CloseUp.SetCallbacks(this);
                 }
                 return controls;
             }
@@ -107,13 +123,14 @@ namespace BBQKing.Core
 
         /// <summary>
         /// Normal play: walking, interacting and using tools. Called when a scene starts; it also
-        /// forgets any panels left open, since this asset keeps its state between Play sessions.
+        /// forgets any panels or close-up left open, since this asset keeps its state between Play
+        /// sessions.
         /// </summary>
         public void EnablePlayerInput()
         {
             openPanels = 0;
-            Controls.UI.Disable();
-            Controls.Player.Enable();
+            inCloseUp = false;
+            ApplyMaps();
         }
 
         /// <summary>
@@ -124,31 +141,66 @@ namespace BBQKing.Core
         public void OpenPanel()
         {
             openPanels++;
-            Controls.Player.Disable();
-            Controls.UI.Enable();
-            Move = Vector2.zero;
-            UseToolHeld = false;
+            ApplyMaps();
         }
 
-        /// <summary>A panel has closed. Walking comes back once no panel is open.</summary>
+        /// <summary>A panel has closed. Walking (or the close-up) comes back once no panel is open.</summary>
         public void ClosePanel()
         {
             if (openPanels > 0) openPanels--;
-            if (openPanels > 0) return;
-            Controls.UI.Disable();
-            Controls.Player.Enable();
+            ApplyMaps();
+        }
+
+        /// <summary>A close-up has opened over the backyard: scrubbing replaces walking.</summary>
+        public void EnterCloseUp()
+        {
+            inCloseUp = true;
+            ApplyMaps();
+        }
+
+        /// <summary>The close-up has closed: back to walking (unless a panel is open).</summary>
+        public void LeaveCloseUp()
+        {
+            inCloseUp = false;
+            ApplyMaps();
         }
 
         /// <summary>Turns all input off, for example while a scene is loading.</summary>
         public void DisableAllInput()
         {
             openPanels = 0;
+            inCloseUp = false;
             HasAim = false;
             if (controls == null) return;
-            controls.Player.Disable();
-            controls.UI.Disable();
+            controls.Disable();
+            ClearHeldInput();
+        }
+
+        /// <summary>Switches on the one map that should be active now, and the others off.</summary>
+        void ApplyMaps()
+        {
+            bool panel = openPanels > 0;
+            bool closeUp = !panel && inCloseUp;
+            bool player = !panel && !inCloseUp;
+
+            // Turn maps off before turning the new one on, so no key belongs to two live maps.
+            if (!panel) Controls.UI.Disable();
+            if (!closeUp) Controls.CloseUp.Disable();
+            if (!player) Controls.Player.Disable();
+            if (panel) Controls.UI.Enable();
+            if (closeUp) Controls.CloseUp.Enable();
+            if (player) Controls.Player.Enable();
+
+            // A disabled map stops reporting, so forget anything that was held down in it.
+            if (!player) { Move = Vector2.zero; UseToolHeld = false; }
+            if (!closeUp) ScrubHeld = false;
+        }
+
+        void ClearHeldInput()
+        {
             Move = Vector2.zero;
             UseToolHeld = false;
+            ScrubHeld = false;
         }
 
         // Called when the asset is unloaded (leaving Play mode with a domain reload, or quitting).
@@ -231,6 +283,18 @@ namespace BBQKing.Core
         public void OnSubmit(InputAction.CallbackContext context)
         {
             if (context.performed) SubmitPressed?.Invoke();
+        }
+
+        public void OnScrub(InputAction.CallbackContext context)
+        {
+            NoteDevice(context);
+            if (context.performed) ScrubHeld = true;
+            else if (context.canceled) ScrubHeld = false;
+        }
+
+        public void OnLeave(InputAction.CallbackContext context)
+        {
+            if (context.performed) LeaveCloseUpPressed?.Invoke();
         }
 
         public void OnPoint(InputAction.CallbackContext context) { }  // read directly by the UI when needed

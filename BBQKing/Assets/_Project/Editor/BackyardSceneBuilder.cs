@@ -29,8 +29,8 @@ namespace BBQKing.EditorTools
         const string RendererPath = "Assets/Settings/Renderer2D.asset";
 
         // Data assets (ScriptableObjects). Created with default values if missing.
-        const string InputReaderPath = "Assets/_Project/Data/Input/InputReader.asset";
-        const string DisplayConfigPath = "Assets/_Project/Data/Settings/DisplayConfig.asset";
+        public const string InputReaderPath = "Assets/_Project/Data/Input/InputReader.asset";
+        public const string DisplayConfigPath = "Assets/_Project/Data/Settings/DisplayConfig.asset";
         const string PlayerConfigPath = "Assets/_Project/Data/Player/PlayerConfig.asset";
         const string PlayerSpritesPath = "Assets/_Project/Data/Characters/PlayerSprites.asset";
         const string PromptChannelPath = "Assets/_Project/Data/Events/InteractionPromptChannel.asset";
@@ -105,7 +105,7 @@ namespace BBQKing.EditorTools
             var cam = BuildCamera(display, map.ground);
 
             // ---------- UI
-            BuildUI(display, input, promptChannel, messageChannel, restoration);
+            var uiCanvas = BuildUI(display, input, promptChannel, messageChannel, restoration);
 
             // ---------- Player
             var player = BuildPlayer(input, playerConfig, playerSprites);
@@ -130,15 +130,26 @@ namespace BBQKing.EditorTools
                 colliderSize: new Vector2(0.8f, 0.4f), colliderOffset: new Vector2(0f, 0.1f));
             PlacePrefab(doorPrefab, (Vector2)BackyardLayout.BackDoor + new Vector2(0.5f, 0f));
             CleaningBuilder.AddKettleGrill(cleaning, restoration.jobBook, restoration.hintChannel);
+            CleaningBuilder.AddCloseUpLoader(cleaning, input, restoration.jobBook, uiCanvas);
             SetRef(cam.GetComponent<CameraFollow>(), "target", player.transform);
             cam.transform.position = new Vector3(player.transform.position.x, player.transform.position.y, -10f);
 
-            // ---------- Save and add to the build
+            // ---------- Save
             PlaceholderAssetWriter.EnsureFolder(ScenePath);
             EditorSceneManager.SaveScene(scene, ScenePath);
-            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenePath, true) };
             AssetDatabase.SaveAssets();
             Debug.Log("BBQ King: built " + ScenePath);
+
+            // ---------- The cleaning close-up, a scene of its own loaded on top of the backyard
+            string closeUpPath = CleaningBuilder.BuildCloseUpScene();
+
+            // Both scenes go in the build: the backyard first, as the scene the game starts in.
+            EditorBuildSettings.scenes = new[]
+            {
+                new EditorBuildSettingsScene(ScenePath, true),
+                new EditorBuildSettingsScene(closeUpPath, true),
+            };
+            EditorSceneManager.OpenScene(ScenePath); // leave the backyard open in the Editor
         }
 
         // ------------------------------------------------------------------ camera
