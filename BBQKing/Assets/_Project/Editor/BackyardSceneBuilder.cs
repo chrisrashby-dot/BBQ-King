@@ -48,7 +48,7 @@ namespace BBQKing.EditorTools
         const int OvergrowthOrder = -90;
         public const int HighlightOrder = -85;  // the tool's target tile, over weeds and rubbish
         const int GroundItemOrder = -80;  // flat things lying on the ground, such as the letter
-        const int StandingOrder = 0;
+        public const int StandingOrder = 0;
 
         static readonly Color32 SkyColour = new Color32(0x24, 0x1c, 0x16, 0xff); // shown outside the map
 
@@ -84,6 +84,7 @@ namespace BBQKing.EditorTools
             var letterMessage = LoadOrCreateMessage(LetterMessagePath, LetterTitle, LetterBody);
             var doorMessage = LoadOrCreateMessage(BackDoorMessagePath, BackDoorTitle, BackDoorBody);
             var restoration = RestorationBuilder.LoadAssets(tiles);
+            var cleaning = CleaningBuilder.LoadAssets();
 
             // ---------- Game: scene-wide helpers
             var gameGo = new GameObject("Game");
@@ -128,6 +129,7 @@ namespace BBQKing.EditorTools
                 StandingOrder, "Open the back door", doorMessage, messageChannel,
                 colliderSize: new Vector2(0.8f, 0.4f), colliderOffset: new Vector2(0f, 0.1f));
             PlacePrefab(doorPrefab, (Vector2)BackyardLayout.BackDoor + new Vector2(0.5f, 0f));
+            CleaningBuilder.AddKettleGrill(cleaning, restoration.jobBook, restoration.hintChannel);
             SetRef(cam.GetComponent<CameraFollow>(), "target", player.transform);
             cam.transform.position = new Vector3(player.transform.position.x, player.transform.position.y, -10f);
 

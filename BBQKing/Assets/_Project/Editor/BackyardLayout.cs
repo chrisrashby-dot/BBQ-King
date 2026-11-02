@@ -27,6 +27,12 @@ namespace BBQKing.EditorTools
         /// <summary>Where the relative's letter lies on the patio (world position).</summary>
         public static readonly Vector2 LetterSpot = new Vector2(13.5f, 19.5f);
 
+        /// <summary>
+        /// Where the relative's kettle grill stands on the patio (world position of its feet). Its
+        /// tile is kept free of weeds and trash.
+        /// </summary>
+        public static readonly Vector2 KettleGrill = new Vector2(19.5f, 19.1f);
+
         /// <summary>Back door and patio: available from the start.</summary>
         public static readonly RectInt Patio = new RectInt(10, 15, 12, 7);
 

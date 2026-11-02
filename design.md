@@ -161,7 +161,7 @@ This section defines how each system works. All numbers are starting values to t
 ### 5.2 Restoration
 
 - **Clearing:** tiles in the world map have an overgrowth or rubbish state. The player uses a tool on a tile to clear it in one to three actions, depending on the tile and tool. A clearing job is complete when every tile in its area is cleared; the 95% rule is only for close-up cleaning. Only tiles next to the player (diagonals included) or the tile they stand on can be worked on. Pointing at a weed or piece of trash highlights it and picks the tool it needs automatically, unless it is in the area of a job that is still locked.
-- **Cleaning:** objects (grill, smoker, patio furniture) open a close-up scene. A grime layer covers the object; holding the mouse button with a tool erases grime under a circular brush. The job is complete at 95% clean, so players never hunt for the last pixel.
+- **Cleaning:** objects (grill, smoker, patio furniture) open a close-up scene. A grime layer covers the object; holding the mouse button with a tool erases grime under a circular brush. The job is complete at 95% clean, so players never hunt for the last pixel. Leaving part way keeps the progress. Job 2's kettle grill uses the wire brush only.
 - **Repairing:** some jobs need parts (fence panels, a door seal), bought at the hardware store.
 - **Tools:** gloves, trash bags, rake, shears, scraper, wire brush and hose in Act 1. Gloves and trash bags are separate tools: gloves pull weeds, the trash bag picks up trash. Upgrades increase brush size and speed.
 
@@ -357,6 +357,9 @@ Newest decisions at the bottom. When a decision changes, add a new row rather th
 | 2 Nov 2026 | Tools work only on tiles next to the player, and the right tool is picked automatically when pointing at something to clear | From the M2 play-test: a highlight running ahead of the player felt wrong, and picking tools by hand was tedious |
 | 2 Nov 2026 | "Rubbish bags" in the overgrowth list renamed "trash bags" | Consistent with the trash bag tool and the American setting |
 | 2 Nov 2026 | Weeds and trash in a locked job's area get no highlight and do not change the tool | From the code review: highlighting something that cannot be cleared yet, and swapping the player's tool for it, invited a click that did nothing |
+| 2 Nov 2026 | Job 2 (the kettle grill) uses only the wire brush; the scraper waits for the smoker in Job 4 | Keeps the first close-up simple while the player learns scrubbing |
+| 2 Nov 2026 | Leaving a close-up part way keeps its cleaning progress for the rest of the play; saving it between plays arrives with saving in M5 | Players can step away from a clean without losing work |
+| 2 Nov 2026 | The kettle grill grate close-up is 128 x 128 pixels (4 x 4 tiles), drawn at 3 times size | Fills most of the 960 x 540 screen with room for the progress meter, in the same pixel style at a larger scale |
 
 ## 11. Open questions
 

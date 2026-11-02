@@ -47,6 +47,18 @@ namespace BBQKing.EditorTools
             importer.SaveAndReimport();
         }
 
+        /// <summary>
+        /// Lets scripts read the image's pixels while the game runs (Read/Write in the import
+        /// settings). Only needed for images the game changes, such as a grime layer.
+        /// </summary>
+        public static void MakeReadable(string assetPath)
+        {
+            var importer = (TextureImporter)AssetImporter.GetAtPath(assetPath);
+            if (importer == null) return;
+            importer.isReadable = true;
+            importer.SaveAndReimport();
+        }
+
         /// <summary>Loads a ScriptableObject asset, creating it with default values if it is missing.</summary>
         public static T LoadOrCreateAsset<T>(string assetPath) where T : ScriptableObject
         {

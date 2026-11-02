@@ -48,6 +48,16 @@ namespace BBQKing.EditorTools
         // ----- Tool icons (32 x 32, centre pivot), named after the section 8 tools list
         public const string ToolGloves = Root + "Tools/tool_gloves.png";
         public const string ToolTrashBag = Root + "Tools/tool_trash_bag.png";
+        public const string ToolWireBrush = Root + "Tools/tool_wire_brush.png";
+
+        // ----- Equipment in the backyard (32 x 32, bottom-centre pivot), named after the section 8 list
+        public const string KettleGrillDirty = Root + "Equipment/kettle_grill_dirty.png";
+        public const string KettleGrillClean = Root + "Equipment/kettle_grill_clean.png";
+
+        // ----- Close-ups (128 x 128, centre pivot, drawn at 3 times size in the close-up scene).
+        // The grime layer is the same size; the game wipes it away, so it is imported readable.
+        public const string CloseUpKettleGrate = Root + "CloseUps/closeup_kettle_grill_grate.png";
+        public const string CloseUpKettleGrateGrime = Root + "CloseUps/closeup_kettle_grill_grate_grime.png";
 
         // ----- Objects (32 x 32; letter centre pivot, door bottom-centre pivot)
         public const string Letter = Root + "Objects/letter.png";
@@ -114,6 +124,17 @@ namespace BBQKing.EditorTools
 
             Tile(ToolGloves, DrawGloves);
             Tile(ToolTrashBag, DrawTrashBag);
+            Tile(ToolWireBrush, DrawWireBrush);
+
+            Tile(KettleGrillDirty, () => DrawKettleGrill(true), SpriteAlignment.BottomCenter);
+            Tile(KettleGrillClean, () => DrawKettleGrill(false), SpriteAlignment.BottomCenter);
+
+            Tile(CloseUpKettleGrate, DrawKettleGrate);
+            if (PlaceholderAssetWriter.SavePngIfMissing(CloseUpKettleGrateGrime, DrawKettleGrateGrime()))
+            {
+                PlaceholderAssetWriter.ConfigureSprite(CloseUpKettleGrateGrime, SpriteAlignment.Center);
+                PlaceholderAssetWriter.MakeReadable(CloseUpKettleGrateGrime);
+            }
 
             Tile(Letter, DrawLetter);
             // The door's pivot is its bottom edge, where it meets the ground, so it Y-sorts in front
@@ -623,6 +644,135 @@ namespace BBQKing.EditorTools
             c.Set(11, 16, BagLight); c.Set(12, 17, BagLight);
             for (int i = 9; i < 23; i++) c.Set(i, 3, BagDark);   // shadow along the bottom
             AddOutline(c, Outline);
+            return c;
+        }
+
+        /// <summary>A wire brush lying on its side: wooden handle on the left, bristles underneath the head.</summary>
+        static PixelCanvas DrawWireBrush()
+        {
+            var c = new PixelCanvas(32, 32);
+            c.FillRect(3, 15, 14, 4, WoodMid);                   // handle
+            for (int i = 3; i < 17; i++) c.Set(i, 18, WoodLight); // lit from the top
+            c.FillRect(16, 13, 13, 7, WoodDark);                 // head
+            for (int i = 16; i < 29; i++) c.Set(i, 19, WoodMid);
+            for (int i = 17; i < 29; i += 2)                     // steel bristles
+                c.FillRect(i, 8, 1, 5, i % 4 == 1 ? CanSilver : CanSilverDark);
+            AddOutline(c, Outline);
+            return c;
+        }
+
+        // ------------------------------------------------------------------ equipment
+
+        static readonly Color32 KettleBlack = PixelCanvas.Hex("#2f3236");
+        static readonly Color32 KettleMid = PixelCanvas.Hex("#454a51");
+        static readonly Color32 KettleLight = PixelCanvas.Hex("#6c737c");
+        static readonly Color32 Charcoal = PixelCanvas.Hex("#1e1f22");
+        static readonly Color32 Ash = PixelCanvas.Hex("#5e5a55");
+        static readonly Color32 GrateLight = PixelCanvas.Hex("#d6dade");
+        static readonly Color32 Rust = PixelCanvas.Hex("#8a4b2a");
+        static readonly Color32 RustLight = PixelCanvas.Hex("#a8643a");
+        static readonly Color32 GrimeBrown = PixelCanvas.Hex("#4a3524");
+        static readonly Color32 GrimeBlack = PixelCanvas.Hex("#2a211b");
+
+        /// <summary>
+        /// The relative's kettle grill: a round black kettle on three legs with a wooden handle on
+        /// the lid, lit from the top left. The dirty one has rust and old grease on it.
+        /// </summary>
+        static PixelCanvas DrawKettleGrill(bool dirty)
+        {
+            var c = new PixelCanvas(32, 32);
+            // Three legs, the back one shorter because it stands further away.
+            c.FillRect(8, 1, 2, 10, KettleBlack);
+            c.FillRect(22, 1, 2, 10, KettleBlack);
+            c.FillRect(15, 4, 2, 7, KettleBlack);
+            c.FillEllipse(16f, 6.5f, 6f, 1.5f, Ash);             // ash catcher between the legs
+
+            c.FillEllipse(16f, 17f, 11f, 10f, KettleMid);         // bowl and lid
+            for (int i = 6; i < 27; i++) c.Set(i, 16, KettleBlack); // where the lid meets the bowl
+            c.FillEllipse(12f, 22f, 3f, 2f, KettleLight);         // shine on the top left of the lid
+            c.FillCircle(21f, 23f, 1.2f, KettleBlack);            // lid vent
+            c.FillRect(13, 27, 6, 2, WoodMid);                    // handle
+            c.FillRect(13, 28, 6, 1, WoodLight);
+
+            if (dirty)
+            {
+                // Scattered rust and grease spots, the same every build.
+                for (int y = 8; y < 27; y++)
+                    for (int x = 6; x < 27; x++)
+                    {
+                        var p = c.Get(x, y);
+                        if (p.a == 0 || (p.r == WoodMid.r && p.g == WoodMid.g)) continue;
+                        int roll = Hash(x, y, 31) % 100;
+                        if (roll < 10) c.Set(x, y, Rust);
+                        else if (roll < 14) c.Set(x, y, RustLight);
+                        else if (roll < 24) c.Set(x, y, GrimeBrown);
+                    }
+            }
+            AddOutline(c, Outline);
+            return c;
+        }
+
+        /// <summary>
+        /// The kettle grill seen from above in the close-up: the black bowl with charcoal and ash
+        /// inside, and the round cooking grate of steel bars over it. This is the clean look; the
+        /// grime layer is drawn over it.
+        /// </summary>
+        static PixelCanvas DrawKettleGrate()
+        {
+            const int size = 128;
+            const float centre = size / 2f;
+            var c = new PixelCanvas(size, size);
+            c.FillCircle(centre, centre, 63f, Outline);
+            c.FillCircle(centre, centre, 61f, KettleMid);         // the bowl's rim
+            c.FillCircle(centre - 2f, centre + 2f, 58f, KettleLight); // rim lit from the top left
+            c.FillCircle(centre, centre, 57f, Charcoal);          // inside the bowl
+
+            // Ash and old coals at the bottom of the bowl.
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                    if (c.Get(x, y).Equals(Charcoal) && Hash(x / 2, y / 2, 41) % 100 < 18)
+                        c.Set(x, y, Ash);
+
+            // The grate: a steel ring with straight bars across it, 6 pixels apart.
+            const float grateRadius = 53f;
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = x + 0.5f - centre, dy = y + 0.5f - centre;
+                    float d = Mathf.Sqrt(dx * dx + dy * dy);
+                    bool ring = d > grateRadius - 2f && d <= grateRadius;
+                    int row = (y - 2) % 6;
+                    bool bar = d < grateRadius && (row == 0 || row == 1);
+                    if (ring || bar) c.Set(x, y, row == 1 || (ring && dy > 0) ? GrateLight : CanSilver);
+                    if (bar && row == 0) c.Set(x, y, CanSilverDark);     // shadow under each bar
+                }
+            return c;
+        }
+
+        /// <summary>
+        /// Years of grease, soot and rust over the whole bowl, in blotchy 4 x 4 pixel patches so
+        /// it reads as grime rather than noise. Everything outside the bowl is see-through, so it
+        /// starts clean and does not count towards the progress meter.
+        /// </summary>
+        static PixelCanvas DrawKettleGrateGrime()
+        {
+            const int size = 128;
+            const float centre = size / 2f;
+            var c = new PixelCanvas(size, size);
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = x + 0.5f - centre, dy = y + 0.5f - centre;
+                    if (dx * dx + dy * dy > 58f * 58f) continue;
+
+                    int patch = Hash(x / 4, y / 4, 51) % 100;
+                    int speck = Hash(x, y, 52) % 100;
+                    Color32 colour = patch < 45 ? GrimeBrown : patch < 80 ? GrimeBlack : Rust;
+                    if (speck < 8) colour = RustLight;
+                    // Mostly solid, with some thinner patches where a little steel shows through.
+                    colour.a = (byte)(patch % 5 == 0 ? 190 : 245);
+                    c.Set(x, y, colour);
+                }
             return c;
         }
 

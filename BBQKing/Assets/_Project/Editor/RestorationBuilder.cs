@@ -32,6 +32,8 @@ namespace BBQKing.EditorTools
         const string ClearableFolder = RestorationFolder + "Clearables/";
         const string JobFolder = "Assets/_Project/Data/Jobs/";
         const string JobBookPath = JobFolder + "JobBook.asset";
+        /// <summary>Job 2, finished in the cleaning close-up (see <see cref="CleaningBuilder"/>).</summary>
+        public const string Job2Path = JobFolder + "Job2_CleanTheKettleGrill.asset";
         const string Job1MessagePath = "Assets/_Project/Data/Messages/Job1Done.asset";
         const string UiConfigPath = "Assets/_Project/Data/Settings/UiConfig.asset";
 
@@ -239,6 +241,7 @@ namespace BBQKing.EditorTools
             {
                 Vector2Int.FloorToInt(BackyardLayout.PlayerStart),
                 Vector2Int.FloorToInt(BackyardLayout.LetterSpot),
+                Vector2Int.FloorToInt(BackyardLayout.KettleGrill),
             };
 
             var patio = BackyardLayout.Patio;
