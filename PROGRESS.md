@@ -8,7 +8,7 @@ Claude Code updates this file at the end of every session. Newest entry at the t
 | --- | --- |
 | M1 Foundations | Done (play-tested 1 Nov 2026) |
 | M2 Restoration | Done (play-tested 2 Nov 2026) |
-| M3 Cleaning | Built 2 Nov 2026; not yet play-tested by hand |
+| M3 Cleaning | Done (play-tested 2 Nov 2026) |
 | M4 First cookout | Not started |
 | M5 Economy and saving | Not started |
 | M6 Smoker | Not started |
@@ -52,7 +52,9 @@ Later the same day, at the developer's request: both grill placeholders were dra
 
 Later again, at the developer's request (design.md 5.2 and decision log updated): **sections and rewards.** The kettle grill is cleaned in two sections, each with its own meter: the **top** (grate and inside of the bowl) and the **bottom** (outside of the bowl). Each section finishes at 95% with a sparkle over it and a chime; when both are done, a bigger sparkle with a white flash and a triple chime plays, then the close-up closes. New: `CleaningSection`, `SectionedGrime` (the rules, with EditMode tests), `GrimeLayer` (one section's picture), `CloseUpEffects` (sparkles, flash, chimes), a bottom grime layer, 4 sparkle frames and 2 placeholder chimes made in code (`Editor/PlaceholderAudio.cs`, WAV files in `Audio/Placeholder`). The existing kettle grill and cleaning config assets were given the new sections and chimes by the builder. 51 EditMode and 22 PlayMode tests pass; screenshots show the two meters and the final flash with sparkles. **Not yet checked by hand in the Editor, and the chimes have not been listened to** (batch mode has no speakers).
 
-Next: play-test M3 in the Editor (README, "Playing Job 2"), then **M4 First cookout** (event brief, menu planner, shops, prep, kettle grill cooking, guest satisfaction, event summary).
+The developer play-tested M3 by hand (the grill, the close-up, both sections, the sparkles, the chimes and finishing Job 2). It works, so **M3 is done**.
+
+Next: **M4 First cookout** (event brief, menu planner, shops, prep, kettle grill cooking, guest satisfaction, event summary).
 
 ### 1 Nov 2026: M2 Restoration
 
