@@ -674,31 +674,54 @@ namespace BBQKing.EditorTools
         static readonly Color32 GrimeBrown = PixelCanvas.Hex("#4a3524");
         static readonly Color32 GrimeBlack = PixelCanvas.Hex("#2a211b");
 
+        static readonly Color32 KettleTop = PixelCanvas.Hex("#5a6068");
+
         /// <summary>
-        /// The relative's kettle grill: a round black kettle on three legs with a wooden handle on
-        /// the lid, lit from the top left. The dirty one has rust and old grease on it.
+        /// The relative's kettle grill in the three-quarter view (design.md 7.1): the top of the
+        /// lid is seen from above as a wide oval, with the wooden handle and the vent on it, and
+        /// below it the front of the bowl curves down to three legs. Lit from the top left. The
+        /// dirty one has rust and old grease on it.
         /// </summary>
         static PixelCanvas DrawKettleGrill(bool dirty)
         {
             var c = new PixelCanvas(32, 32);
-            // Three legs, the back one shorter because it stands further away.
-            c.FillRect(8, 1, 2, 10, KettleBlack);
-            c.FillRect(22, 1, 2, 10, KettleBlack);
-            c.FillRect(15, 4, 2, 7, KettleBlack);
-            c.FillEllipse(16f, 6.5f, 6f, 1.5f, Ash);             // ash catcher between the legs
+            // Three legs splaying out, the back one shorter because it stands further away.
+            c.FillRect(8, 1, 2, 9, KettleBlack);
+            c.FillRect(22, 1, 2, 9, KettleBlack);
+            c.FillRect(15, 3, 2, 6, KettleBlack);
+            c.FillEllipse(16f, 6f, 6f, 1.5f, Ash);               // ash catcher between the legs
 
-            c.FillEllipse(16f, 17f, 11f, 10f, KettleMid);         // bowl and lid
-            for (int i = 6; i < 27; i++) c.Set(i, 16, KettleBlack); // where the lid meets the bowl
-            c.FillEllipse(12f, 22f, 3f, 2f, KettleLight);         // shine on the top left of the lid
-            c.FillCircle(21f, 23f, 1.2f, KettleBlack);            // lid vent
-            c.FillRect(13, 27, 6, 2, WoodMid);                    // handle
-            c.FillRect(13, 28, 6, 1, WoodLight);
+            // The kettle's outline: a squashed sphere, wider than it is tall from this angle.
+            c.FillEllipse(16f, 16f, 11f, 9f, KettleMid);
+            // The front of the bowl darkens towards the bottom, away from the light.
+            for (int y = 7; y < 12; y++)
+                for (int x = 0; x < 32; x++)
+                    if (c.Get(x, y).Equals(KettleMid)) c.Set(x, y, KettleBlack);
+
+            // The top of the lid, seen from above.
+            c.FillEllipse(16f, 19.5f, 10f, 5f, KettleTop);
+            c.FillEllipse(12f, 21.5f, 3f, 1.2f, KettleLight);     // shine on its top left
+
+            // Where the lid meets the bowl: an arc curving down at the front, as a ring seen
+            // from above does. A lighter pixel above it catches the lid's edge.
+            for (int x = 6; x <= 26; x++)
+            {
+                float t = (x + 0.5f - 16f) / 11f;
+                int y = Mathf.RoundToInt(15.5f - 3f * Mathf.Sqrt(Mathf.Max(0f, 1f - t * t)));
+                c.Set(x, y, KettleBlack);
+                if (x < 16) c.Set(x, y + 1, KettleLight);
+            }
+
+            c.FillRect(13, 19, 6, 1, KettleBlack);                // shadow under the handle
+            c.FillRect(13, 20, 6, 2, WoodMid);                    // handle, lying across the lid
+            c.FillRect(13, 21, 6, 1, WoodLight);
+            c.FillRect(20, 22, 2, 1, KettleBlack);                // lid vent
 
             if (dirty)
             {
                 // Scattered rust and grease spots, the same every build.
-                for (int y = 8; y < 27; y++)
-                    for (int x = 6; x < 27; x++)
+                for (int y = 7; y < 26; y++)
+                    for (int x = 4; x < 28; x++)
                     {
                         var p = c.Get(x, y);
                         if (p.a == 0 || (p.r == WoodMid.r && p.g == WoodMid.g)) continue;
@@ -712,58 +735,90 @@ namespace BBQKing.EditorTools
             return c;
         }
 
+        // The close-up grill's shape in the three-quarter view, shared by the grate and its grime
+        // so they line up: a round kettle seen from above and in front, so its circles become
+        // ovals two thirds as tall as they are wide, with the front of the bowl showing below.
+        const int CloseUpSize = 128;
+        const float GrillCentreX = 64f, GrillCentreY = 78f;     // centre of the rim's oval
+        const float RimRadiusX = 63f, RimRadiusY = 42f;         // outside of the rim
+        const float BowlRadiusX = 58f, BowlRadiusY = 38.5f;     // inside the bowl, where grime sits
+        const float GrateRadiusX = 54f, GrateRadiusY = 36f;     // the cooking grate
+        const float BodyRadiusY = 74f;                          // how far the bowl's front curves down
+
+        /// <summary>How far a pixel is from the grill's centre, as a share of an oval's size (1 = on its edge).</summary>
+        static float OvalDistance(int x, int y, float radiusX, float radiusY)
+        {
+            float dx = (x + 0.5f - GrillCentreX) / radiusX, dy = (y + 0.5f - GrillCentreY) / radiusY;
+            return Mathf.Sqrt(dx * dx + dy * dy);
+        }
+
         /// <summary>
-        /// The kettle grill seen from above in the close-up: the black bowl with charcoal and ash
-        /// inside, and the round cooking grate of steel bars over it. This is the clean look; the
-        /// grime layer is drawn over it.
+        /// The kettle grill in the close-up, in the same three-quarter view as everything else
+        /// (design.md 7.2): the cooking grate and the black bowl's rim are seen from above as wide
+        /// ovals, with charcoal and ash under the grate, and the front of the bowl curves down
+        /// below. The grate's bars run from front to back. Lit from the top left. This is the
+        /// clean look; the grime layer is drawn over it.
         /// </summary>
         static PixelCanvas DrawKettleGrate()
         {
-            const int size = 128;
-            const float centre = size / 2f;
-            var c = new PixelCanvas(size, size);
-            c.FillCircle(centre, centre, 63f, Outline);
-            c.FillCircle(centre, centre, 61f, KettleMid);         // the bowl's rim
-            c.FillCircle(centre - 2f, centre + 2f, 58f, KettleLight); // rim lit from the top left
-            c.FillCircle(centre, centre, 57f, Charcoal);          // inside the bowl
-
-            // Ash and old coals at the bottom of the bowl.
-            for (int y = 0; y < size; y++)
-                for (int x = 0; x < size; x++)
-                    if (c.Get(x, y).Equals(Charcoal) && Hash(x / 2, y / 2, 41) % 100 < 18)
-                        c.Set(x, y, Ash);
-
-            // The grate: a steel ring with straight bars across it, 6 pixels apart.
-            const float grateRadius = 53f;
-            for (int y = 0; y < size; y++)
-                for (int x = 0; x < size; x++)
+            var c = new PixelCanvas(CloseUpSize, CloseUpSize);
+            for (int y = 0; y < CloseUpSize; y++)
+                for (int x = 0; x < CloseUpSize; x++)
                 {
-                    float dx = x + 0.5f - centre, dy = y + 0.5f - centre;
-                    float d = Mathf.Sqrt(dx * dx + dy * dy);
-                    bool ring = d > grateRadius - 2f && d <= grateRadius;
-                    int row = (y - 2) % 6;
-                    bool bar = d < grateRadius && (row == 0 || row == 1);
-                    if (ring || bar) c.Set(x, y, row == 1 || (ring && dy > 0) ? GrateLight : CanSilver);
-                    if (bar && row == 0) c.Set(x, y, CanSilverDark);     // shadow under each bar
+                    float dx = x + 0.5f - GrillCentreX;
+                    bool rim = OvalDistance(x, y, RimRadiusX, RimRadiusY) <= 1f;
+                    // The front of the bowl: the lower half of a tall oval under the rim.
+                    bool front = y + 0.5f < GrillCentreY && OvalDistance(x, y, RimRadiusX, BodyRadiusY) <= 1f;
+
+                    if (front && !rim)
+                    {
+                        // Lit on the left, darker on the right and around the curve at the bottom.
+                        var colour = dx < -RimRadiusX * 0.55f ? KettleLight : KettleMid;
+                        if (OvalDistance(x, y, RimRadiusX, BodyRadiusY) > 0.88f || dx > RimRadiusX * 0.6f) colour = KettleBlack;
+                        c.Set(x, y, colour);
+                    }
+                    else if (rim)
+                    {
+                        float bowl = OvalDistance(x, y, BowlRadiusX, BowlRadiusY);
+                        if (bowl > 1f)
+                            // The rim: lit along its back left, where the light falls on it.
+                            c.Set(x, y, y + 0.5f > GrillCentreY && dx < 0 ? KettleLight : KettleMid);
+                        else
+                            // Inside the bowl: charcoal with patches of ash and old coals.
+                            c.Set(x, y, Hash(x / 2, y / 2, 41) % 100 < 18 ? Ash : Charcoal);
+                    }
                 }
+
+            // The grate: a steel ring with bars running front to back, 6 pixels apart.
+            for (int y = 0; y < CloseUpSize; y++)
+                for (int x = 0; x < CloseUpSize; x++)
+                {
+                    float d = OvalDistance(x, y, GrateRadiusX, GrateRadiusY);
+                    if (d > 1f) continue;
+                    bool ring = d > 1f - 2.5f / GrateRadiusY;
+                    int column = (x - 4) % 6;
+                    if (ring) c.Set(x, y, y + 0.5f > GrillCentreY ? GrateLight : CanSilver);
+                    else if (column == 0) c.Set(x, y, GrateLight);       // lit from the left
+                    else if (column == 1) c.Set(x, y, CanSilverDark);    // shadow side of each bar
+                }
+
+            AddOutline(c, Outline);
             return c;
         }
 
         /// <summary>
-        /// Years of grease, soot and rust over the whole bowl, in blotchy 4 x 4 pixel patches so
-        /// it reads as grime rather than noise. Everything outside the bowl is see-through, so it
-        /// starts clean and does not count towards the progress meter.
+        /// Years of grease, soot and rust over the inside of the bowl and the grate, in blotchy
+        /// 4 x 4 pixel patches so it reads as grime rather than noise. Everything else, including
+        /// the rim and the front of the bowl, is see-through, so it starts clean and does not count
+        /// towards the progress meter.
         /// </summary>
         static PixelCanvas DrawKettleGrateGrime()
         {
-            const int size = 128;
-            const float centre = size / 2f;
-            var c = new PixelCanvas(size, size);
-            for (int y = 0; y < size; y++)
-                for (int x = 0; x < size; x++)
+            var c = new PixelCanvas(CloseUpSize, CloseUpSize);
+            for (int y = 0; y < CloseUpSize; y++)
+                for (int x = 0; x < CloseUpSize; x++)
                 {
-                    float dx = x + 0.5f - centre, dy = y + 0.5f - centre;
-                    if (dx * dx + dy * dy > 58f * 58f) continue;
+                    if (OvalDistance(x, y, BowlRadiusX, BowlRadiusY) > 1f) continue;
 
                     int patch = Hash(x / 4, y / 4, 51) % 100;
                     int speck = Hash(x, y, 52) % 100;

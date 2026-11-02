@@ -153,8 +153,8 @@ Overwrite a PNG in `Assets/_Project/Art/Placeholder/` with your own file of the 
 | `Overgrowth/weed_small.png`, `weed_medium.png`, `weed_large.png` | 32 x 32 | Centre | Transparent so the slab shows. Bigger weeds take more pulls, so make the sizes easy to tell apart |
 | `Overgrowth/trash_bag.png`, `rubbish_cans.png`, `rubbish_pot_broken.png` | 32 x 32 | Centre | Transparent so the slab shows |
 | `Tools/tool_gloves.png`, `tool_trash_bag.png`, `tool_wire_brush.png` | 32 x 32 | Centre | Toolbar icons |
-| `Equipment/kettle_grill_dirty.png`, `kettle_grill_clean.png` | 32 x 32 | Bottom centre | The grill on the patio, before and after Job 2 |
-| `CloseUps/closeup_kettle_grill_grate.png` | 128 x 128 | Centre | The clean grill seen from above in the close-up, drawn 3 times bigger |
+| `Equipment/kettle_grill_dirty.png`, `kettle_grill_clean.png` | 32 x 32 | Bottom centre | The grill on the patio, before and after Job 2. Three-quarter view: the top of the lid shows, with the handle on it |
+| `CloseUps/closeup_kettle_grill_grate.png` | 128 x 128 | Centre | The clean grill in the close-up, in the same three-quarter view as the rest of the game (the grate as a wide oval, the front of the bowl below), drawn 3 times bigger |
 | `CloseUps/closeup_kettle_grill_grate_grime.png` | 128 x 128 | Centre | The grime over it. See-through parts start clean and do not count towards the meter. **Read/Write** must stay on in its import settings, because the game wipes it pixel by pixel |
 | `UI/ui_panel_dark.png`, `ui_panel_paper.png`, `ui_slot.png`, `ui_slot_selected.png` | 12 x 12 | Centre | 9-sliced, 4 px border (set in the Sprite Editor) |
 | `UI/ui_tile_highlight.png` | 32 x 32 | Centre | Drawn over the target tile in the world; keep the middle mostly see-through |

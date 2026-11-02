@@ -48,6 +48,8 @@ Done (one commit per step):
 
 Checked in batch mode: everything compiles with no errors or warnings from our code; 48 EditMode and 22 PlayMode tests pass; screenshots of the grill on the patio and the close-up part way through (with the meter) look as expected. **Not yet checked by hand in the Editor.**
 
+Later the same day, at the developer's request: both grill placeholders were drawn side-on or straight down, which broke the three-quarter view rule (design.md 7.1 and 7.2). They are redrawn: the patio grill shows the top of its lid with the handle on it, and the close-up shows the grate as a wide oval with the front of the bowl below. The grime layer follows the new shape. Same file names, sizes and GUIDs; all tests still pass.
+
 Next: play-test M3 in the Editor (README, "Playing Job 2"), then **M4 First cookout** (event brief, menu planner, shops, prep, kettle grill cooking, guest satisfaction, event summary).
 
 ### 1 Nov 2026: M2 Restoration
