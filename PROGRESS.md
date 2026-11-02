@@ -53,7 +53,7 @@ M1 play-tested by hand and marked done.
 Next: **M2 Restoration** (tile clearing with tools, Job 1, the jobs board).
 
 M2 decisions from the developer (1 Nov 2026):
-- **Gloves and trash bag are two separate tools:** gloves pull weeds, the trash bag picks up trash. This changes design.md section 5.2 (see questions below).
+- **Gloves and trash bag are two separate tools:** gloves pull weeds, the trash bag picks up trash. Recorded in design.md section 5.2.
 - **"Trash bag", not "bin bag":** the American term, for the setting.
 - **Targeting:** changed after the play-test on 2 Nov 2026, at the developer's request: with a mouse, clicks only work on the tiles touching the player's tile (diagonals included) and the highlight only shows while the pointer is over one. The highlight no longer runs ahead of the player. A gamepad still uses the faced tile. Later the same day, also at the developer's request: the highlight only shows over a weed or piece of trash, the right tool is picked automatically when the player points at one, and its toolbar slot briefly grows (size and time are on the Toolbar's `ToolbarUI` component). Choosing by hand with 1 to 6 or the wheel still works.
 - **Job complete:** when every tile in the job is cleared (the 95% rule stays for close-up scrubbing).
@@ -61,15 +61,7 @@ M2 decisions from the developer (1 Nov 2026):
 
 ## Questions for the developer
 
-- **Design changes made in the local design.md (2 Nov 2026, at the developer's request); please copy them into the master design document, or the next regeneration will undo them:**
-  - Section 5.2 Clearing: only tiles next to the player can be worked on; pointing at a weed or trash highlights it and picks the right tool.
-  - Section 5.2 Tools: gloves and trash bags as two separate tools ("gloves, trash bags, rake, shears, scraper, wire brush and hose").
-  - Section 6.1 Controls: Select tool is now "Automatic when pointing at something to clear; or 1 to 6, or mouse wheel".
-  - Section 8 Tools: "bin bag" becomes "trash bag".
-  - Section 7.3 Sound effects and section 8 Audio: "bin bag rustle" and "bin bag" become "trash bag rustle" and "trash bag".
-  - Section 5.2 Clearing: a clearing job is complete when every tile in its area is cleared; the 95% rule is only for close-up cleaning.
-  - Section 8 Overgrowth: "rubbish bags" becomes "trash bags" (the placeholder is now `Overgrowth/trash_bag.png`, its tile `overgrowth_trash_bag`).
-  - Section 10 Decision log: four new rows (1 and 2 Nov 2026).
+- **design.md is the master design document (2 Nov 2026):** the developer retired the separate master copy. The M2 design changes (separate gloves and trash bag, "trash bag" wording, tools only next to the player, automatic tool choice, the clearing completion rule) are in design.md with decision log rows, so nothing needs copying. CLAUDE.md is updated to match.
 - **M2 starting values to tune (design.md does not set them):** small, medium and large weeds take 1, 2 and 3 pulls; each piece of trash takes 1; 45% of patio slabs start weedy and 15% of the rest have trash; tool reach 1 tile around the player's tile; holding the button uses the tool every 0.3 seconds. All are in data assets (see the README) except the two shares, which are in `Editor/BackyardLayout.cs`.
 - **Jobs and events:** each job currently needs only the job before it. In design.md section 4.3, events come between some jobs (for example Event 1 before Job 3); that link arrives with events in M4.
 - **Job 1 completion text:** "Patio cleared!" in `Data/Messages/Job1Done` is marked as placeholder text. Job 1 also unlocks the grilled corn recipe card (section 4.5); recipe cards arrive in M7.

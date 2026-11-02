@@ -12,7 +12,7 @@ The developer knows C# but is new to Unity. Explain Unity-specific steps clearly
 
 - `design.md` is the game design document. It defines what to build, the systems, starting values, art rules and technical decisions.
 - Do not change a design decision on your own. If something in `design.md` seems wrong, unclear or impossible, stop and ask, then suggest the change.
-- If a design decision changes during a session, tell the developer so they can update the design document (the master copy lives outside this repo and `design.md` is regenerated from it). Do not edit `design.md` yourself unless asked.
+- `design.md` is the master copy of the design document; there is no other copy. When the developer agrees a design change during a session, update `design.md` to match and add a row to its decision log (section 10). Do not edit it for anything the developer has not agreed.
 - The current build target is **Act 1** (section 4 of `design.md`). Do not build Act 2 or Act 3 features unless asked.
 
 ## Repository layout
@@ -20,7 +20,7 @@ The developer knows C# but is new to Unity. Explain Unity-specific steps clearly
 ```
 /                     Repository root
 ├── CLAUDE.md         This file
-├── design.md         Game design document (read only unless asked)
+├── design.md         Game design document (the master copy; change only agreed decisions)
 ├── PROGRESS.md       Build log and milestone status (keep updated)
 └── BBQKing/          Unity project
     └── Assets/_Project/
