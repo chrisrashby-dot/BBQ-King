@@ -82,6 +82,18 @@ namespace BBQKing.Cleaning
             return changed;
         }
 
+        /// <summary>
+        /// The finishing line (design.md 5.2: complete at 95% clean, so players never hunt for the
+        /// last pixel). Once the object is at least <paramref name="completeAt"/> clean, the rest
+        /// is wiped away and this returns true.
+        /// </summary>
+        public bool FinishIfCleanEnough(float completeAt)
+        {
+            if (CleanFraction < completeAt) return false;
+            ClearAll();
+            return true;
+        }
+
         /// <summary>Wipes every last bit away, used when the object reaches the finishing line.</summary>
         public void ClearAll()
         {

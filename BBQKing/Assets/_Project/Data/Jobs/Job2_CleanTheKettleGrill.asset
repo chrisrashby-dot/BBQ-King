@@ -17,4 +17,4 @@ MonoBehaviour:
   requires:
   - {fileID: 11400000, guid: d54b85d37f63eb94dab55df402246c28, type: 2}
   areas: []
-  completionMessage: {fileID: 0}
+  completionMessage: {fileID: 11400000, guid: 3ed1acb6e5239e54ba036614fedbbe22, type: 2}

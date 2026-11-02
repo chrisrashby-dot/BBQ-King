@@ -35,6 +35,7 @@ namespace BBQKing.EditorTools
         /// <summary>Job 2, finished in the cleaning close-up (see <see cref="CleaningBuilder"/>).</summary>
         public const string Job2Path = JobFolder + "Job2_CleanTheKettleGrill.asset";
         const string Job1MessagePath = "Assets/_Project/Data/Messages/Job1Done.asset";
+        const string Job2MessagePath = "Assets/_Project/Data/Messages/Job2Done.asset";
         const string UiConfigPath = "Assets/_Project/Data/Settings/UiConfig.asset";
 
         /// <summary>The assets the Restoration parts of the scene share.</summary>
@@ -118,6 +119,16 @@ namespace BBQKing.EditorTools
                 null, new[] { BackyardLayout.Patio }, LoadOrCreateJob1Message());
             var job2 = LoadOrCreateJob("Job2_CleanTheKettleGrill", "Clean the kettle grill",
                 "Scrub years of grime off the old kettle grill on the patio.", job1);
+            if (job2.completionMessage == null)
+            {
+                // Job 2 was first made in M2 without a message; M3 gives it one. A message you
+                // have chosen in the Inspector is kept.
+                job2.completionMessage = LoadOrCreateMessage(Job2MessagePath, "Grill cleaned!",
+                    "[Placeholder text] Under all that grime, the old kettle grill still shines. " +
+                    "It looks ready for its first cookout in years.\n\n" +
+                    "Press Tab to see the jobs board.");
+                EditorUtility.SetDirty(job2);
+            }
             var job3 = LoadOrCreateJob("Job3_ClearTheLawn", "Clear the lawn and fix the fence",
                 "Mow and rake the lawn and replace the broken fence panels.", job2);
             var job4 = LoadOrCreateJob("Job4_RestoreTheSmoker", "Restore the offset smoker",
@@ -153,16 +164,19 @@ namespace BBQKing.EditorTools
             return job;
         }
 
-        static MessageData LoadOrCreateJob1Message()
+        static MessageData LoadOrCreateJob1Message() => LoadOrCreateMessage(Job1MessagePath, "Patio cleared!",
+            "[Placeholder text] The patio is clear for the first time in years. " +
+            "The old kettle grill could do with a good scrub next.\n\n" +
+            "Next job: Clean the kettle grill. Press Tab to see the jobs board.");
+
+        static MessageData LoadOrCreateMessage(string path, string title, string body)
         {
-            bool isNew = AssetDatabase.LoadAssetAtPath<MessageData>(Job1MessagePath) == null;
-            var message = PlaceholderAssetWriter.LoadOrCreateAsset<MessageData>(Job1MessagePath);
+            bool isNew = AssetDatabase.LoadAssetAtPath<MessageData>(path) == null;
+            var message = PlaceholderAssetWriter.LoadOrCreateAsset<MessageData>(path);
             if (isNew)
             {
-                message.title = "Patio cleared!";
-                message.body = "[Placeholder text] The patio is clear for the first time in years. " +
-                               "The old kettle grill could do with a good scrub next.\n\n" +
-                               "Next job: Clean the kettle grill. Press Tab to see the jobs board.";
+                message.title = title;
+                message.body = body;
                 EditorUtility.SetDirty(message);
             }
             return message;

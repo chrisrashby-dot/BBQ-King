@@ -75,6 +75,21 @@ namespace BBQKing.Tests
         }
 
         [Test]
+        public void At95PercentTheRestIsWipedAway()
+        {
+            // 100 pixels in a row; the brush takes off whole pixels from the left.
+            var mask = Solid(100, 1);
+            mask.Scrub(new Vector2(47f, 0.5f), 47f, 1f);  // pixels 0 to 93: 94% clean
+            Assert.AreEqual(0.94f, mask.CleanFraction, 1e-5f);
+            Assert.IsFalse(mask.FinishIfCleanEnough(0.95f), "94% is not finished");
+            Assert.AreEqual(1f, mask.GrimeAt(99, 0), "and the grime stays");
+
+            mask.Scrub(new Vector2(94.5f, 0.5f), 0.4f, 1f); // one more pixel: 95%
+            Assert.IsTrue(mask.FinishIfCleanEnough(0.95f), "95% is finished");
+            Assert.AreEqual(1f, mask.CleanFraction, "the last bits are wiped away");
+        }
+
+        [Test]
         public void ClearAllMakesItSpotless()
         {
             var mask = Solid(4, 4);

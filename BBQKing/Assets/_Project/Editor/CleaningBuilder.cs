@@ -172,6 +172,8 @@ namespace BBQKing.EditorTools
             SetRef(closeUp, "titleLabel", ui.title);
             SetRef(closeUp, "toolIcon", ui.toolIcon);
             SetRef(closeUp, "toolLabel", ui.toolLabel);
+            SetRef(closeUp, "meterFill", ui.meterFill);
+            SetRef(closeUp, "meterLabel", ui.meterLabel);
 
             PlaceholderAssetWriter.EnsureFolder(CloseUpScenePath);
             EditorSceneManager.SaveScene(scene, CloseUpScenePath);
@@ -216,9 +218,12 @@ namespace BBQKing.EditorTools
 
         struct CloseUpUi
         {
-            public Text title, toolLabel;
+            public Text title, toolLabel, meterLabel;
             public Image toolIcon;
+            public RectTransform meterFill;
         }
+
+        static readonly Color32 MeterGreen = new Color32(0x6a, 0xa8, 0x4a, 0xff);
 
         static CloseUpUi BuildCloseUpUi(DisplayConfig display, Assets a)
         {
@@ -234,6 +239,21 @@ namespace BBQKing.EditorTools
             ui.title.fontStyle = FontStyle.Bold;
             UiFactory.Anchor(ui.title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -8f), new Vector2(400f, 22f));
             ui.title.gameObject.AddComponent<Outline>().effectColor = UiFactory.InkText;
+
+            // The progress meter under the title: a dark frame with a green bar that grows from
+            // the left, and "37% clean" below it.
+            const float meterWidth = 200f;
+            var frame = UiFactory.Image(canvasGo.transform, "Meter", PlaceholderArt.UiPanelDark);
+            UiFactory.Anchor(frame.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -32f), new Vector2(meterWidth + 4f, 12f));
+            var fill = new GameObject("Fill", typeof(RectTransform)).AddComponent<Image>();
+            fill.transform.SetParent(frame.transform, false);
+            fill.color = MeterGreen; // a plain coloured rectangle: no sprite needed
+            fill.raycastTarget = false;
+            UiFactory.Anchor(fill.rectTransform, new Vector2(0f, 0.5f), new Vector2(2f, 0f), new Vector2(meterWidth, 8f));
+            ui.meterFill = fill.rectTransform;
+            ui.meterLabel = UiFactory.Text(canvasGo.transform, "Meter Label", "0% clean", 10, TextAnchor.UpperCenter, UiFactory.LightText);
+            UiFactory.Anchor(ui.meterLabel.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -46f), new Vector2(200f, 14f));
+            ui.meterLabel.gameObject.AddComponent<Outline>().effectColor = UiFactory.InkText;
 
             // The tool in hand, bottom left: one slot like the backyard toolbar, with its name.
             var slot = UiFactory.Image(canvasGo.transform, "Tool Slot", PlaceholderArt.UiSlotSelected);

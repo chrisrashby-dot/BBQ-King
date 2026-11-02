@@ -8,7 +8,9 @@ namespace BBQKing.Cleaning
     /// <summary>
     /// Runs the CloseUp_Cleaning scene: shows the object being cleaned (from the close-up session)
     /// with its grime over it. Holding the left mouse button wipes grime away under a round brush
-    /// (design.md section 5.2), and Escape leaves, keeping the progress for next time.
+    /// (design.md section 5.2), and a meter shows how clean it is. At 95% the rest is wiped away,
+    /// "Spotless!" shows for a moment and the close-up closes, finishing the object's job.
+    /// Escape leaves early, keeping the progress for next time.
     ///
     /// The close-up's art sits far away from the backyard (see the scene builder), so the two
     /// scenes can share the game world without the backyard camera ever seeing it.
@@ -34,13 +36,29 @@ namespace BBQKing.Cleaning
         [SerializeField] Image toolIcon;
         [SerializeField] Text toolLabel;
 
+        [Tooltip("The progress meter's coloured bar. Its width is set to match how clean the object is.")]
+        [SerializeField] RectTransform meterFill;
+        [SerializeField] Text meterLabel;
+
+        [Header("Wording")]
+        [Tooltip("The meter's text. {0} is replaced with how clean it is, as a whole percentage.")]
+        [SerializeField] string meterFormat = "{0}% clean";
+        [Tooltip("Shown on the meter once the object is finished.")]
+        [SerializeField] string finishedText = "Spotless!";
+
         /// <summary>What is being cleaned, or null if the scene was opened on its own.</summary>
         public CleanableData Cleaning { get; private set; }
 
         /// <summary>How clean the object is, 0 to 1.</summary>
         public float CleanFraction => mask != null ? mask.CleanFraction : 0f;
 
+        /// <summary>True once the object has reached the finishing line.</summary>
+        public bool IsFinished { get; private set; }
+
         GrimeMask mask;
+        float meterFullWidth;
+        float finishedAt;
+        bool closeRequested;
         Color32[] grimeColours;   // the grime image's own colours; the mask sets their opacity
         Color32[] shownPixels;    // what is drawn, rewritten whenever grime comes off
         Texture2D grimeTexture;
@@ -71,6 +89,10 @@ namespace BBQKing.Cleaning
             if (titleLabel != null) titleLabel.text = Cleaning.cleanPrompt;
             ShowTool(Cleaning.tool);
             SetUpGrime();
+
+            // The bar's width in the scene is its full width; it is shrunk to match progress.
+            if (meterFill != null) meterFullWidth = meterFill.sizeDelta.x;
+            ShowProgress();
         }
 
         void ShowTool(ToolData tool)
@@ -126,11 +148,34 @@ namespace BBQKing.Cleaning
 
         void Update()
         {
-            if (mask == null || config == null || input == null || !input.IsCloseUpInputEnabled) return;
-            if (!input.ScrubHeld || !input.HasAim) return; // a gamepad brush can come later
+            if (mask == null || config == null || input == null) return;
 
-            if (mask.Scrub(BrushPixel(), config.brushRadius, config.scrubPerSecond * Time.deltaTime))
-                RedrawGrime();
+            if (IsFinished)
+            {
+                // Let the player enjoy the spotless object for a moment, then close.
+                if (Time.time - finishedAt >= config.finishPauseSeconds) Close();
+                return;
+            }
+
+            if (!input.IsCloseUpInputEnabled || !input.ScrubHeld || !input.HasAim) return; // a gamepad brush can come later
+            if (!mask.Scrub(BrushPixel(), config.brushRadius, config.scrubPerSecond * Time.deltaTime)) return;
+
+            if (mask.FinishIfCleanEnough(config.completeAt))
+            {
+                IsFinished = true;
+                finishedAt = Time.time;
+            }
+            RedrawGrime();
+            ShowProgress();
+        }
+
+        void ShowProgress()
+        {
+            float fraction = mask != null ? mask.CleanFraction : 0f;
+            if (meterFill != null)
+                meterFill.sizeDelta = new Vector2(meterFullWidth * fraction, meterFill.sizeDelta.y);
+            if (meterLabel != null)
+                meterLabel.text = IsFinished ? finishedText : string.Format(meterFormat, Mathf.FloorToInt(fraction * 100f));
         }
 
         /// <summary>Where the mouse points, in pixels of the grime image from its bottom-left corner.</summary>
@@ -158,9 +203,14 @@ namespace BBQKing.Cleaning
             grimeTexture.Apply();
         }
 
-        void Leave()
+        // Escape. Leaving during the finishing pause still counts the object as finished.
+        void Leave() => Close();
+
+        void Close()
         {
-            if (session != null) session.RequestClose(false);
+            if (closeRequested || session == null) return;
+            closeRequested = true;
+            session.RequestClose(IsFinished);
         }
 
         void OnDestroy()

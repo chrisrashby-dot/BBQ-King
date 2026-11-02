@@ -150,5 +150,54 @@ namespace BBQKing.Tests
             closeUp = Object.FindAnyObjectByType<CleaningCloseUp>();
             Assert.AreEqual(scrubbed, closeUp.CleanFraction, 1e-5f, "coming back should keep the progress");
         }
+
+        [UnityTest]
+        public IEnumerator ScrubbingTo95PercentFinishesJob2()
+        {
+            // A huge, fast brush, so the test needs only a few strokes. Put back afterwards,
+            // because the config is an asset shared with the game.
+            var config = Resources.FindObjectsOfTypeAll<CleaningConfig>()[0];
+            float radius = config.brushRadius, speed = config.scrubPerSecond;
+            config.brushRadius = 20f;
+            config.scrubPerSecond = 10f;
+            try
+            {
+                yield return OpenTheCloseUp();
+                var closeUp = Object.FindAnyObjectByType<CleaningCloseUp>();
+                var meter = GameObject.Find("Close-up UI/Meter Label").GetComponent<Text>();
+
+                // Brush over the grate in a grid of spots 2.5 world units apart.
+                for (float y = -5f; y <= 5f && !closeUp.IsFinished; y += 2.5f)
+                    for (float x = -5f; x <= 5f && !closeUp.IsFinished; x += 2.5f)
+                    {
+                        yield return PointAtGrime(new Vector2(x, y));
+                        yield return HoldLeftMouse(0.15f);
+                    }
+
+                Assert.IsTrue(closeUp.IsFinished, $"the grill should be finished (it reached {closeUp.CleanFraction:P0})");
+                Assert.AreEqual(1f, closeUp.CleanFraction, "the last 5% is wiped away for the player");
+                Assert.AreEqual("Spotless!", meter.text);
+
+                float giveUp = Time.time + 5f;
+                while (SceneManager.GetSceneByName(CloseUpScene).isLoaded && Time.time < giveUp) yield return null;
+                yield return Frames(2);
+                Assert.IsFalse(SceneManager.GetSceneByName(CloseUpScene).isLoaded, "the close-up closes by itself after a short pause");
+                Assert.AreEqual(JobStatus.Done, jobBook.StatusOf(jobBook.Jobs[1]), "Job 2 should be done");
+
+                var messagePanel = GameObject.Find("UI/Message Panel").transform.Find("Paper").gameObject;
+                Assert.IsTrue(messagePanel.activeSelf, "Job 2's completion message should show");
+                Assert.AreEqual("Grill cleaned!", messagePanel.transform.Find("Title").GetComponent<Text>().text);
+                var grill = Object.FindAnyObjectByType<CleanableObject>().GetComponent<SpriteRenderer>();
+                StringAssert.Contains("clean", grill.sprite.name, "the grill in the backyard should look clean now");
+
+                yield return Hold(Key.Escape, 0.05f);
+                Assert.IsTrue(input.IsPlayerInputEnabled, "closing the message gives walking back");
+            }
+            finally
+            {
+                config.brushRadius = radius;
+                config.scrubPerSecond = speed;
+            }
+        }
     }
 }
