@@ -21,6 +21,15 @@ namespace BBQKing.Tests
         }
 
         [Test]
+        public void SelectPicksASlotDirectly()
+        {
+            var slots = new ToolSlots(2);
+            Assert.IsTrue(slots.Select(1));
+            Assert.AreEqual(1, slots.Selected);
+            Assert.IsFalse(slots.Select(1), "selecting the same slot again is no change");
+        }
+
+        [Test]
         public void NumberKeyForAnEmptySlotIsIgnored()
         {
             var slots = new ToolSlots(2);

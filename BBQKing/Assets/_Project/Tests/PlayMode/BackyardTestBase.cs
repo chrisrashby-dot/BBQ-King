@@ -67,16 +67,30 @@ namespace BBQKing.Tests
             yield return Frames(2);
         }
 
+        Vector2 mouseScreen;
+
+        /// <summary>Moves the mouse pointer to the centre of a tile.</summary>
+        protected IEnumerator PointAt(Vector2Int cell)
+        {
+            mouseScreen = Camera.main.WorldToScreenPoint(new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0f));
+            InputSystem.QueueStateEvent(mouse, new MouseState { position = mouseScreen });
+            yield return Frames(2);
+        }
+
+        /// <summary>Holds the left button wherever the pointer is.</summary>
+        protected IEnumerator HoldLeftMouse(float seconds)
+        {
+            InputSystem.QueueStateEvent(mouse, new MouseState { position = mouseScreen }.WithButton(MouseButton.Left));
+            yield return Seconds(seconds);
+            InputSystem.QueueStateEvent(mouse, new MouseState { position = mouseScreen });
+            yield return Frames(2);
+        }
+
         /// <summary>Points the mouse at the centre of a tile, then holds the left button there.</summary>
         protected IEnumerator HoldLeftMouseOn(Vector2Int cell, float seconds)
         {
-            Vector2 screen = Camera.main.WorldToScreenPoint(new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0f));
-            InputSystem.QueueStateEvent(mouse, new MouseState { position = screen });
-            yield return Frames(2);
-            InputSystem.QueueStateEvent(mouse, new MouseState { position = screen }.WithButton(MouseButton.Left));
-            yield return Seconds(seconds);
-            InputSystem.QueueStateEvent(mouse, new MouseState { position = screen });
-            yield return Frames(2);
+            yield return PointAt(cell);
+            yield return HoldLeftMouse(seconds);
         }
 
         static IEnumerator Seconds(float seconds)

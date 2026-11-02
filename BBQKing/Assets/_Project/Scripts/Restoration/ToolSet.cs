@@ -20,5 +20,14 @@ namespace BBQKing.Restoration
 
         /// <summary>The tool in a slot (0 is the first), or null if the slot is empty.</summary>
         public ToolData Get(int slot) => slot >= 0 && slot < Count ? tools[slot] : null;
+
+        /// <summary>The slot holding a tool (0 is the first), or -1 if it is not on the toolbar.</summary>
+        public int SlotOf(ToolData tool)
+        {
+            if (tool == null) return -1;
+            for (int i = 0; i < Count; i++)
+                if (tools[i] == tool) return i;
+            return -1;
+        }
     }
 }

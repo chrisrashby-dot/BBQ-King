@@ -27,6 +27,9 @@ namespace BBQKing.Player
             return true;
         }
 
+        /// <summary>Selects a slot directly (0 is the first). Returns true if the selection changed.</summary>
+        public bool Select(int slot) => SelectKey(slot + 1);
+
         /// <summary>Steps to the next (+1) or previous (-1) slot, wrapping round. Returns true if it changed.</summary>
         public bool Cycle(int direction)
         {

@@ -20,12 +20,12 @@ The game itself. Design decisions live in `../design.md`, working rules in `../C
 | --- | --- |
 | Walk | WASD or arrow keys (gamepad left stick or d-pad) |
 | Use something nearby | E, when a prompt shows at the bottom of the screen (gamepad A) |
-| Choose a tool | 1 to 6, or the mouse wheel (gamepad shoulder buttons) |
+| Choose a tool | Automatic when pointing at a weed or trash; or 1 to 6, or the mouse wheel (gamepad shoulder buttons) |
 | Use the tool | Left mouse button; hold to keep going (gamepad right trigger) |
 | Jobs board | Tab (gamepad Select) |
 | Close a letter, note or the jobs board | E, Escape, Tab or right mouse button (gamepad B) |
 
-Point the mouse at a tile next to the player (diagonals included, or the tile they stand on) and a highlight appears; clicking works on that tile. Clicking further away does nothing, so walk up to what you want to clear. With a gamepad, the tool works on the tile the player is facing.
+Point the mouse at a weed or piece of trash next to the player (diagonals included, or on the tile they stand on): a highlight appears over it, the right tool is picked for you and its toolbar slot briefly grows so you can see the change. Clicking works on that tile. Empty tiles get no highlight, and clicking further away does nothing, so walk up to what you want to clear. You can still pick a tool by hand while pointing; it stays until you point at a different tile. With a gamepad, the same happens for the tile the player is facing.
 
 ### Playing Job 1 (Clear the patio)
 
@@ -155,10 +155,10 @@ If you ever set them by hand: select the image, set these in the Inspector, then
 ## Running the tests
 
 1. Open **Window > General > Test Runner**.
-2. On the **EditMode** tab, click **Run All**. These check the facing and walk-cycle rules, toolbar slots, tool aiming, clearing counts and job statuses (37 tests).
-3. On the **PlayMode** tab, click **Run All**. These load the Backyard and press keys and mouse buttons on a pretend keyboard and mouse (11 tests):
+2. On the **EditMode** tab, click **Run All**. These check the facing and walk-cycle rules, toolbar slots, tool aiming, clearing counts and job statuses (38 tests).
+3. On the **PlayMode** tab, click **Run All**. These load the Backyard and press keys and mouse buttons on a pretend keyboard and mouse (14 tests):
    - walking, the letter, the back door, fences (including standing behind the bottom fence) and the resolution switch;
-   - pulling a weed with the gloves, and the hint for the wrong tool;
+   - pulling a weed, nothing happening out of reach, the highlight only over things to clear, the trash bag being picked automatically, and the hint for a wrong tool chosen by hand;
    - the job HUD count, the jobs board on Tab, and finishing Job 1.
 
 ## Git and Git LFS

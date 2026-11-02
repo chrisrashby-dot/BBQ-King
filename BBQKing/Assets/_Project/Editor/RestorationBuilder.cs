@@ -195,10 +195,11 @@ namespace BBQKing.EditorTools
         }
 
         /// <summary>
-        /// Gives the player a tool belt (the tool in hand, chosen with 1 to 6 or the mouse wheel)
-        /// and a tool user, which aims the tool at a tile and shows a highlight there.
+        /// Gives the player a tool belt (the tool in hand, chosen with 1 to 6, the mouse wheel or
+        /// automatically) and a tool user, which aims the tool at a weed or piece of trash, shows a
+        /// highlight there and picks the tool it needs.
         /// </summary>
-        public static void AddToPlayer(PlayerMovement player, InputReader input, PlayerConfig config, Assets a)
+        public static void AddToPlayer(PlayerMovement player, InputReader input, PlayerConfig config, Assets a, ClearingSystem clearing)
         {
             var go = player.gameObject;
             var belt = go.AddComponent<ToolBelt>();
@@ -220,6 +221,7 @@ namespace BBQKing.EditorTools
             SetRef(user, "toolBelt", belt);
             SetRef(user, "highlight", highlight);
             SetRef(user, "toolUseChannel", a.toolUseChannel);
+            SetRef(user, "clearing", clearing);
         }
 
         // ------------------------------------------------------------------ clearing
@@ -265,7 +267,7 @@ namespace BBQKing.EditorTools
         /// The clearing system, which handles tool uses on the Overgrowth tilemap, and the job
         /// tracker, which counts cleared tiles towards jobs. Both live on one "Restoration" object.
         /// </summary>
-        public static void AddClearingSystem(BackyardSceneBuilder.MapRefs map, Assets a, MessageEventChannel messageChannel)
+        public static ClearingSystem AddClearingSystem(BackyardSceneBuilder.MapRefs map, Assets a, MessageEventChannel messageChannel)
         {
             var go = new GameObject("Restoration");
             var system = go.AddComponent<ClearingSystem>();
@@ -282,6 +284,7 @@ namespace BBQKing.EditorTools
             SetRef(tracker, "clearing", system);
             SetRef(tracker, "tileClearedChannel", a.tileClearedChannel);
             SetRef(tracker, "showMessageChannel", messageChannel);
+            return system;
         }
 
         /// <summary>The jobs board, a paper panel in the middle of the screen opened with Tab.</summary>

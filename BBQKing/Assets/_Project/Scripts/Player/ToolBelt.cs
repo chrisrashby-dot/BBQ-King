@@ -6,7 +6,8 @@ namespace BBQKing.Player
 {
     /// <summary>
     /// The tool the player is holding. Number keys 1 to 6 pick a toolbar slot and the mouse wheel
-    /// steps through them. Each change is posted to a channel so the toolbar can highlight it
+    /// steps through them; <see cref="ToolUser"/> also picks the right tool when the player points
+    /// at a weed or piece of trash, so choosing by hand is rarely needed. Each change is posted to a channel so the toolbar can highlight it
     /// without a reference to the player.
     /// </summary>
     public class ToolBelt : MonoBehaviour
@@ -43,6 +44,15 @@ namespace BBQKing.Player
 
         // Start runs after every object's OnEnable, so the toolbar is already listening.
         void Start() => Post();
+
+        /// <summary>Switches to a tool if it is on the toolbar. Returns true if the tool in hand changed.</summary>
+        public bool Select(ToolData tool)
+        {
+            int slot = tools != null ? tools.SlotOf(tool) : -1;
+            if (slot < 0 || !slots.Select(slot)) return false;
+            Post();
+            return true;
+        }
 
         void OnSlotKey(int keyNumber)
         {

@@ -97,7 +97,7 @@ namespace BBQKing.EditorTools
             // ---------- Map
             var map = BuildMap(tiles);
             RestorationBuilder.PlaceOvergrowth(map, tiles, restoration);
-            RestorationBuilder.AddClearingSystem(map, restoration, messageChannel);
+            var clearing = RestorationBuilder.AddClearingSystem(map, restoration, messageChannel);
 
             // ---------- Camera
             var cam = BuildCamera(display, map.ground);
@@ -112,7 +112,7 @@ namespace BBQKing.EditorTools
             SetRef(interactor, "movement", player);
             SetRef(interactor, "config", playerConfig);
             SetRef(interactor, "promptChannel", promptChannel);
-            RestorationBuilder.AddToPlayer(player, input, playerConfig, restoration);
+            RestorationBuilder.AddToPlayer(player, input, playerConfig, restoration, clearing);
 
             // ---------- Interactable objects (prefabs placed in the scene)
             var letterPrefab = LoadOrCreateMessagePrefab(LetterPrefabPath, "Letter", PlaceholderArt.Letter,

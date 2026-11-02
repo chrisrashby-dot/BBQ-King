@@ -55,12 +55,13 @@ Next: **M2 Restoration** (tile clearing with tools, Job 1, the jobs board).
 M2 decisions from the developer (1 Nov 2026):
 - **Gloves and trash bag are two separate tools:** gloves pull weeds, the trash bag picks up trash. This changes design.md section 5.2 (see questions below).
 - **"Trash bag", not "bin bag":** the American term, for the setting.
-- **Targeting:** changed after the play-test on 2 Nov 2026, at the developer's request: with a mouse, clicks only work on the tiles touching the player's tile (diagonals included) and the highlight only shows while the pointer is over one. The highlight no longer runs ahead of the player. A gamepad still uses the faced tile.
+- **Targeting:** changed after the play-test on 2 Nov 2026, at the developer's request: with a mouse, clicks only work on the tiles touching the player's tile (diagonals included) and the highlight only shows while the pointer is over one. The highlight no longer runs ahead of the player. A gamepad still uses the faced tile. Later the same day, also at the developer's request: the highlight only shows over a weed or piece of trash, the right tool is picked automatically when the player points at one, and its toolbar slot briefly grows (size and time are on the Toolbar's `ToolbarUI` component). Choosing by hand with 1 to 6 or the wheel still works.
 - **Job complete:** when every tile in the job is cleared (the 95% rule stays for close-up scrubbing).
 - **Weekend counter:** waits for M4.
 
 ## Questions for the developer
 
+- **Design change to record (2 Nov 2026):** section 6.1 Controls says "Select tool: 1 to 6, or mouse wheel". Tools are now also picked automatically when pointing at a weed or trash, and only tiles next to the player can be worked on. Please add this to the master design document.
 - **Design changes to record (1 Nov 2026):** please update the master design document:
   - Section 5.2 Tools: gloves and trash bags as two separate tools ("gloves, trash bags, rake, shears, scraper, wire brush and hose").
   - Section 8 Tools: "bin bag" becomes "trash bag". (Section 8 also says "rubbish bags" under Overgrowth and rubbish; in-game this reads as trash, but the placeholder files keep the section 8 names, such as `rubbish_bag.png`, so they still match one for one. Say if you would like those renamed too.)
