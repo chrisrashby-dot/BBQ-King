@@ -284,7 +284,7 @@ A warm, cosy 2D pixel art look. The main visual reference is Space Station 13: 3
 
 - **Visuals:** soft lighting, golden-hour skies, clear contrast between grimy and clean, readable food states.
 - **Tone:** gentle humour and warmth; friendly guests and rivals.
-- **Sound effects:** sizzling, crackling wood, scrubbing, weeds pulled, bin bag rustle, a satisfying chime at 100% clean, guests chatting.
+- **Sound effects:** sizzling, crackling wood, scrubbing, weeds pulled, trash bag rustle, a satisfying chime at 100% clean, guests chatting.
 - **Ambience:** birdsong, distant lawnmowers and neighbourhood sounds; crickets in the evening.
 - **Music:** relaxed acoustic, with a slightly livelier track during events.
 
@@ -304,7 +304,7 @@ Everything Act 1 needs, so art and build work can be tracked. Placeholders are f
 | Characters | Player (4 directions, walk, interact), 6 guest bases with palette swaps, 2 neighbours, children (2 bases) |
 | Close-ups | Kettle grill grate, smoker body, smoker firebox (each with a grime layer) |
 | UI | HUD icons (money, reputation, weekend), tool bar, jobs board, recipe cards, shop list, thermometer dial, star rating |
-| Audio | Sizzle, fire crackle, scrub, weed pull, bin bag, clean chime, guest chatter, footsteps (grass and patio), menu clicks, 2 to 3 music tracks |
+| Audio | Sizzle, fire crackle, scrub, weed pull, trash bag, clean chime, guest chatter, footsteps (grass and patio), menu clicks, 2 to 3 music tracks |
 
 ## 9. Technical specification
 

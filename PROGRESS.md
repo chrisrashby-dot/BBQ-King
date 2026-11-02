@@ -66,8 +66,8 @@ M2 decisions from the developer (1 Nov 2026):
   - Section 5.2 Tools: gloves and trash bags as two separate tools ("gloves, trash bags, rake, shears, scraper, wire brush and hose").
   - Section 6.1 Controls: Select tool is now "Automatic when pointing at something to clear; or 1 to 6, or mouse wheel".
   - Section 8 Tools: "bin bag" becomes "trash bag".
+  - Section 7.3 Sound effects and section 8 Audio: "bin bag rustle" and "bin bag" become "trash bag rustle" and "trash bag".
   - Section 10 Decision log: two new rows (1 and 2 Nov 2026).
-  - Not changed: section 7.3 and section 8 Audio still say "bin bag rustle" and "bin bag". Say if those should become "trash bag" too.
   - Not changed: section 8 Overgrowth still says "rubbish bags". In-game this reads as trash, but the placeholder files keep the section 8 names, such as `rubbish_bag.png`, so they still match one for one. Say if you would like those renamed too.
 - **M2 starting values to tune (design.md does not set them):** small, medium and large weeds take 1, 2 and 3 pulls; each piece of trash takes 1; 45% of patio slabs start weedy and 15% of the rest have trash; tool reach 1 tile around the player's tile; holding the button uses the tool every 0.3 seconds. All are in data assets (see the README) except the two shares, which are in `Editor/BackyardLayout.cs`.
 - **Jobs and events:** each job currently needs only the job before it. In design.md section 4.3, events come between some jobs (for example Event 1 before Job 3); that link arrives with events in M4.
