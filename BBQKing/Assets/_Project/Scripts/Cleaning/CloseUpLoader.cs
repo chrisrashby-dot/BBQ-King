@@ -35,7 +35,7 @@ namespace BBQKing.Cleaning
         void Awake()
         {
             // This project keeps ScriptableObject data between Play sessions, so start afresh.
-            if (session != null) session.SetCurrent(null);
+            if (session != null) session.ResetProgress();
         }
 
         void OnEnable()

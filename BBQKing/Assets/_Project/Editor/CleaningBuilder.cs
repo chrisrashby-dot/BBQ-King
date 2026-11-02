@@ -22,6 +22,7 @@ namespace BBQKing.EditorTools
     {
         const string DataFolder = "Assets/_Project/Data/Cleaning/";
         const string SessionPath = DataFolder + "CloseUpSession.asset";
+        const string ConfigPath = DataFolder + "CleaningConfig.asset";
         const string KettleGrillDataPath = DataFolder + "KettleGrill.asset";
         const string WireBrushPath = "Assets/_Project/Data/Tools/WireBrush.asset";
         const string KettleGrillPrefabPath = "Assets/_Project/Prefabs/KettleGrill.prefab";
@@ -40,6 +41,7 @@ namespace BBQKing.EditorTools
         public struct Assets
         {
             public CloseUpSession session;
+            public CleaningConfig config;
             public CleanableData kettleGrill;
             public ToolData wireBrush;
         }
@@ -50,6 +52,7 @@ namespace BBQKing.EditorTools
             var a = new Assets
             {
                 session = PlaceholderAssetWriter.LoadOrCreateAsset<CloseUpSession>(SessionPath),
+                config = PlaceholderAssetWriter.LoadOrCreateAsset<CleaningConfig>(ConfigPath),
                 wireBrush = LoadOrCreateWireBrush(),
             };
 
@@ -150,7 +153,7 @@ namespace BBQKing.EditorTools
             var root = new GameObject("Close-up");
             root.transform.position = CloseUpOrigin;
 
-            BuildCloseUpCamera(display);
+            var cam = BuildCloseUpCamera(display);
 
             // The object and its grime. The sprites shown here are the kettle grill's, so the scene
             // looks right while editing; the game sets them from the close-up session.
@@ -162,6 +165,8 @@ namespace BBQKing.EditorTools
             var closeUp = root.AddComponent<CleaningCloseUp>();
             SetRef(closeUp, "input", input);
             SetRef(closeUp, "session", a.session);
+            SetRef(closeUp, "config", a.config);
+            SetRef(closeUp, "closeUpCamera", cam);
             SetRef(closeUp, "objectRenderer", objectRenderer);
             SetRef(closeUp, "grimeRenderer", grimeRenderer);
             SetRef(closeUp, "titleLabel", ui.title);
@@ -175,7 +180,7 @@ namespace BBQKing.EditorTools
             return CloseUpScenePath;
         }
 
-        static void BuildCloseUpCamera(DisplayConfig display)
+        static Camera BuildCloseUpCamera(DisplayConfig display)
         {
             // Not tagged MainCamera: the backyard camera stays the main one. This camera has a
             // higher priority (depth), so it draws after the backyard camera and covers it.
@@ -194,6 +199,7 @@ namespace BBQKing.EditorTools
             ppc.gridSnapping = PixelPerfectCamera.GridSnapping.UpscaleRenderTexture;
             ppc.cropFrame = PixelPerfectCamera.CropFrame.None;
             SetRef(camGo.AddComponent<PixelCameraSetup>(), "displayConfig", display);
+            return cam;
         }
 
         static SpriteRenderer CloseUpSprite(Transform parent, string name, Sprite sprite, int order)

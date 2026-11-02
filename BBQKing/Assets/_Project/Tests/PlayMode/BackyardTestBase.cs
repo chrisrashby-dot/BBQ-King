@@ -72,7 +72,13 @@ namespace BBQKing.Tests
         /// <summary>Moves the mouse pointer to the centre of a tile.</summary>
         protected IEnumerator PointAt(Vector2Int cell)
         {
-            mouseScreen = Camera.main.WorldToScreenPoint(new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0f));
+            yield return PointAtScreen(Camera.main.WorldToScreenPoint(new Vector3(cell.x + 0.5f, cell.y + 0.5f, 0f)));
+        }
+
+        /// <summary>Moves the mouse pointer to a position on screen, in pixels.</summary>
+        protected IEnumerator PointAtScreen(Vector2 screen)
+        {
+            mouseScreen = screen;
             InputSystem.QueueStateEvent(mouse, new MouseState { position = mouseScreen });
             yield return Frames(2);
         }

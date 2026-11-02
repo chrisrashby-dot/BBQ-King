@@ -119,5 +119,36 @@ namespace BBQKing.Tests
             Assert.IsTrue(backyardUi.enabled, "the backyard UI should come back");
             Assert.AreEqual(JobStatus.Available, jobBook.StatusOf(jobBook.Jobs[1]), "leaving early does not finish the job");
         }
+
+        /// <summary>Points the mouse at a spot on the close-up's object, in world units from its centre.</summary>
+        IEnumerator PointAtGrime(Vector2 offset)
+        {
+            var cam = GameObject.Find("Close-up Camera").GetComponent<Camera>();
+            var grime = GameObject.Find("Close-up/Grime").transform;
+            yield return PointAtScreen(cam.WorldToScreenPoint(grime.position + (Vector3)offset));
+        }
+
+        [UnityTest]
+        public IEnumerator HoldingTheMouseScrubsGrimeAwayAndLeavingKeepsIt()
+        {
+            yield return OpenTheCloseUp();
+            var closeUp = Object.FindAnyObjectByType<CleaningCloseUp>();
+            Assert.AreEqual(0f, closeUp.CleanFraction, "the grill starts grimy");
+
+            yield return PointAtGrime(Vector2.zero);
+            yield return HoldLeftMouse(1f);
+            float scrubbed = closeUp.CleanFraction;
+            Assert.Greater(scrubbed, 0f, "holding the mouse should scrub some grime off");
+            Assert.Less(scrubbed, 0.5f, "one spot is nowhere near the whole grill");
+
+            yield return Hold(Key.Escape, 0.05f);
+            yield return Frames(3);
+            yield return Hold(Key.E, 0.05f);
+            float giveUp = Time.time + 5f;
+            while (Object.FindAnyObjectByType<CleaningCloseUp>() == null && Time.time < giveUp) yield return null;
+            yield return Frames(2);
+            closeUp = Object.FindAnyObjectByType<CleaningCloseUp>();
+            Assert.AreEqual(scrubbed, closeUp.CleanFraction, 1e-5f, "coming back should keep the progress");
+        }
     }
 }

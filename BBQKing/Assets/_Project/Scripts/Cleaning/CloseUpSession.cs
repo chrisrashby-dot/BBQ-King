@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace BBQKing.Cleaning
@@ -27,5 +28,30 @@ namespace BBQKing.Cleaning
 
         /// <summary>Called by the loader as the close-up opens and closes.</summary>
         public void SetCurrent(CleanableData what) => Current = what;
+
+        // The grime left on each object, kept when the player leaves part way so they can carry
+        // on later (design.md decision log, 2 Nov 2026). Not saved into the asset; saving to a
+        // file arrives in M5.
+        [NonSerialized] readonly Dictionary<CleanableData, GrimeMask> progress = new Dictionary<CleanableData, GrimeMask>();
+
+        /// <summary>The grime left on an object from an earlier visit, or null if it has not been started.</summary>
+        public GrimeMask ProgressFor(CleanableData what) =>
+            what != null && progress.TryGetValue(what, out var mask) ? mask : null;
+
+        /// <summary>Remembers an object's grime. The close-up keeps changing the same mask as the player scrubs.</summary>
+        public void KeepProgress(CleanableData what, GrimeMask mask)
+        {
+            if (what != null && mask != null) progress[what] = mask;
+        }
+
+        /// <summary>
+        /// Forgets everything. Needed at the start of play because this project keeps
+        /// ScriptableObject data between Play sessions (domain reload is off).
+        /// </summary>
+        public void ResetProgress()
+        {
+            progress.Clear();
+            Current = null;
+        }
     }
 }
