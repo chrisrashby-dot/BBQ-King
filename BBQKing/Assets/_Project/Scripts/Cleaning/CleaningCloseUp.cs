@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using BBQKing.Core;
 using BBQKing.Restoration;
 using UnityEngine;
@@ -7,17 +9,17 @@ namespace BBQKing.Cleaning
 {
     /// <summary>
     /// Runs the CloseUp_Cleaning scene: shows the object being cleaned (from the close-up session)
-    /// with its grime over it. Holding the left mouse button wipes grime away under a round brush
-    /// (design.md section 5.2), and a meter shows how clean it is. At 95% the rest is wiped away,
-    /// "Spotless!" shows for a moment and the close-up closes, finishing the object's job.
-    /// Escape leaves early, keeping the progress for next time.
+    /// with a grime layer for each of its sections, such as the kettle grill's top and bottom.
+    /// Holding the left mouse button wipes grime away under a round brush (design.md section 5.2),
+    /// and each section has its own meter. At 95% a section's last grime is wiped away and it is
+    /// finished; when every section is, the close-up waits a moment and closes, finishing the
+    /// object's job. Escape leaves early, keeping the progress for next time.
+    ///
+    /// The sparkles and chimes are played by <see cref="CloseUpEffects"/>, which listens to the
+    /// <see cref="SectionFinished"/> and <see cref="AllFinished"/> events.
     ///
     /// The close-up's art sits far away from the backyard (see the scene builder), so the two
     /// scenes can share the game world without the backyard camera ever seeing it.
-    ///
-    /// Unity concept: the grime is drawn from a texture made while the game runs. Each frame the
-    /// brush changes the <see cref="GrimeMask"/>, the new grime is written into the texture's
-    /// pixels, and Apply() sends them to the graphics card to be drawn.
     /// </summary>
     public class CleaningCloseUp : MonoBehaviour
     {
@@ -28,50 +30,59 @@ namespace BBQKing.Cleaning
         [Header("Scene parts")]
         [Tooltip("The close-up's own camera, used to find where the mouse points.")]
         [SerializeField] Camera closeUpCamera;
+
+        [Tooltip("Draws the clean object. Each section's grime is drawn over it, at the same size and place.")]
         [SerializeField] SpriteRenderer objectRenderer;
-        [SerializeField] SpriteRenderer grimeRenderer;
 
         [Header("UI")]
         [SerializeField] Text titleLabel;
         [SerializeField] Image toolIcon;
         [SerializeField] Text toolLabel;
 
-        [Tooltip("The progress meter's coloured bar. Its width is set to match how clean the object is.")]
-        [SerializeField] RectTransform meterFill;
-        [SerializeField] Text meterLabel;
+        [Tooltip("Each section's meter bar, in the same order as the object's sections. Its width is set to match how clean the section is.")]
+        [SerializeField] RectTransform[] meterFills = new RectTransform[0];
+        [SerializeField] Text[] meterLabels = new Text[0];
 
         [Header("Wording")]
-        [Tooltip("The meter's text. {0} is replaced with how clean it is, as a whole percentage.")]
-        [SerializeField] string meterFormat = "{0}% clean";
-        [Tooltip("Shown on the meter once the object is finished.")]
-        [SerializeField] string finishedText = "Spotless!";
+        [Tooltip("A meter's text. {0} is the section's name, {1} how clean it is as a whole percentage.")]
+        [SerializeField] string meterFormat = "{0}: {1}% clean";
+        [Tooltip("A finished section's meter text. {0} is the section's name.")]
+        [SerializeField] string finishedFormat = "{0}: Spotless!";
+
+        /// <summary>A section has just reached the finishing line. The number is its place in the object's list.</summary>
+        public event Action<int> SectionFinished;
+
+        /// <summary>Every section is finished: the big celebration.</summary>
+        public event Action AllFinished;
 
         /// <summary>What is being cleaned, or null if the scene was opened on its own.</summary>
         public CleanableData Cleaning { get; private set; }
 
-        /// <summary>How clean the object is, 0 to 1.</summary>
-        public float CleanFraction => mask != null ? mask.CleanFraction : 0f;
+        /// <summary>True once every section is finished.</summary>
+        public bool IsFinished => grime != null && grime.AllFinished;
 
-        /// <summary>True once the object has reached the finishing line.</summary>
-        public bool IsFinished { get; private set; }
+        public int LayerCount => layers.Count;
+        public GrimeLayer Layer(int section) => layers[section];
 
-        GrimeMask mask;
-        float meterFullWidth;
-        float finishedAt;
+        /// <summary>How clean one section is, 0 to 1.</summary>
+        public float CleanFraction(int section) => layers[section].Mask.CleanFraction;
+
+        SectionedGrime grime;
+        readonly List<GrimeLayer> layers = new List<GrimeLayer>();
+        readonly List<int> finishedNow = new List<int>();
+        float[] meterFullWidths;
+        float allDoneAt = -1f;      // when the big celebration is due, or -1
+        float closeAt = -1f;        // when the close-up closes by itself, or -1
         bool closeRequested;
-        Color32[] grimeColours;   // the grime image's own colours; the mask sets their opacity
-        Color32[] shownPixels;    // what is drawn, rewritten whenever grime comes off
-        Texture2D grimeTexture;
-        Sprite grimeSprite;
 
         void OnEnable()
         {
-            if (input != null) input.LeaveCloseUpPressed += Leave;
+            if (input != null) input.LeaveCloseUpPressed += Close;
         }
 
         void OnDisable()
         {
-            if (input != null) input.LeaveCloseUpPressed -= Leave;
+            if (input != null) input.LeaveCloseUpPressed -= Close;
         }
 
         void Start()
@@ -88,10 +99,12 @@ namespace BBQKing.Cleaning
             if (objectRenderer != null) objectRenderer.sprite = Cleaning.closeUpSprite;
             if (titleLabel != null) titleLabel.text = Cleaning.cleanPrompt;
             ShowTool(Cleaning.tool);
-            SetUpGrime();
+            SetUpSections();
 
-            // The bar's width in the scene is its full width; it is shrunk to match progress.
-            if (meterFill != null) meterFullWidth = meterFill.sizeDelta.x;
+            // Each bar's width in the scene is its full width; it is shrunk to match progress.
+            meterFullWidths = new float[meterFills.Length];
+            for (int i = 0; i < meterFills.Length; i++)
+                if (meterFills[i] != null) meterFullWidths[i] = meterFills[i].sizeDelta.x;
             ShowProgress();
         }
 
@@ -106,106 +119,110 @@ namespace BBQKing.Cleaning
         }
 
         /// <summary>
-        /// Copies the grime image into a texture the game can change, and picks up the grime left
-        /// from an earlier visit, if any.
+        /// Makes a grime layer for each section, drawn over the object, carrying on from an earlier
+        /// visit if there was one.
         /// </summary>
-        void SetUpGrime()
+        void SetUpSections()
         {
-            var source = Cleaning.grimeSprite;
-            if (source == null || grimeRenderer == null) return;
-            if (!source.texture.isReadable)
+            var earlier = session.ProgressFor(Cleaning);
+            var sections = Cleaning.sections;
+            var masks = new GrimeMask[sections.Length];
+
+            for (int i = 0; i < sections.Length; i++)
             {
-                Debug.LogError($"BBQ King: {source.texture.name} needs Read/Write turned on in its import settings to be scrubbed.");
-                grimeRenderer.sprite = source;
-                return;
+                var source = sections[i].grimeSprite;
+                if (source == null || !source.texture.isReadable)
+                {
+                    Debug.LogError($"BBQ King: section \"{sections[i].name}\" of {Cleaning.name} needs a grime image with Read/Write turned on in its import settings.");
+                    return;
+                }
+
+                // A new renderer for this section, at the object's size and place, drawn over it.
+                var go = new GameObject("Grime " + sections[i].name);
+                go.transform.SetParent(objectRenderer.transform.parent, false);
+                go.transform.localPosition = objectRenderer.transform.localPosition;
+                go.transform.localScale = objectRenderer.transform.localScale;
+                var renderer = go.AddComponent<SpriteRenderer>();
+                renderer.sortingOrder = objectRenderer.sortingOrder + 1 + i;
+
+                var layer = new GrimeLayer(source, renderer, earlier != null && i < earlier.Count ? earlier.Mask(i) : null);
+                layers.Add(layer);
+                masks[i] = layer.Mask;
             }
 
-            var rect = source.textureRect;
-            int width = (int)rect.width, height = (int)rect.height;
-            var colours = source.texture.GetPixels((int)rect.x, (int)rect.y, width, height);
-            grimeColours = new Color32[colours.Length];
-            for (int i = 0; i < colours.Length; i++) grimeColours[i] = colours[i];
-
-            mask = session.ProgressFor(Cleaning);
-            if (mask == null || mask.Width != width || mask.Height != height)
+            if (earlier != null && earlier.Count == masks.Length && SameMasks(earlier, masks))
+                grime = earlier; // carry on, including which sections are already finished
+            else
             {
-                mask = GrimeMask.FromPixels(grimeColours, width, height);
-                session.KeepProgress(Cleaning, mask); // the same mask changes as the player scrubs
+                grime = new SectionedGrime(masks);
+                session.KeepProgress(Cleaning, grime); // the same object changes as the player scrubs
             }
+        }
 
-            grimeTexture = new Texture2D(width, height, TextureFormat.RGBA32, false)
-            {
-                filterMode = FilterMode.Point, // crisp pixels, like the imported art
-                wrapMode = TextureWrapMode.Clamp,
-                name = source.texture.name + " (being scrubbed)",
-            };
-            shownPixels = new Color32[grimeColours.Length];
-            var pivot = new Vector2(source.pivot.x / width, source.pivot.y / height);
-            grimeSprite = Sprite.Create(grimeTexture, new Rect(0, 0, width, height), pivot, source.pixelsPerUnit);
-            grimeRenderer.sprite = grimeSprite;
-            RedrawGrime();
+        static bool SameMasks(SectionedGrime grime, GrimeMask[] masks)
+        {
+            for (int i = 0; i < masks.Length; i++) if (grime.Mask(i) != masks[i]) return false;
+            return true;
         }
 
         void Update()
         {
-            if (mask == null || config == null || input == null) return;
+            if (grime == null || config == null || input == null) return;
 
-            if (IsFinished)
+            if (allDoneAt >= 0f && Time.time >= allDoneAt)
             {
-                // Let the player enjoy the spotless object for a moment, then close.
-                if (Time.time - finishedAt >= config.finishPauseSeconds) Close();
-                return;
+                allDoneAt = -1f;
+                closeAt = Time.time + config.finishPauseSeconds;
+                AllFinished?.Invoke();
             }
+            if (closeAt >= 0f && Time.time >= closeAt) Close();
+            if (grime.AllFinished) return; // admiring the result; no more scrubbing
 
             if (!input.IsCloseUpInputEnabled || !input.ScrubHeld || !input.HasAim) return; // a gamepad brush can come later
-            if (!mask.Scrub(BrushPixel(), config.brushRadius, config.scrubPerSecond * Time.deltaTime)) return;
 
-            if (mask.FinishIfCleanEnough(config.completeAt))
-            {
-                IsFinished = true;
-                finishedAt = Time.time;
-            }
-            RedrawGrime();
+            finishedNow.Clear();
+            if (!grime.Scrub(BrushPixel(), config.brushRadius, config.scrubPerSecond * Time.deltaTime, config.completeAt, finishedNow))
+                return;
+
+            foreach (var layer in layers) layer.Redraw();
             ShowProgress();
+            foreach (int section in finishedNow) SectionFinished?.Invoke(section);
+            if (grime.AllFinished) allDoneAt = Time.time + config.allDoneDelaySeconds;
         }
 
-        void ShowProgress()
-        {
-            float fraction = mask != null ? mask.CleanFraction : 0f;
-            if (meterFill != null)
-                meterFill.sizeDelta = new Vector2(meterFullWidth * fraction, meterFill.sizeDelta.y);
-            if (meterLabel != null)
-                meterLabel.text = IsFinished ? finishedText : string.Format(meterFormat, Mathf.FloorToInt(fraction * 100f));
-        }
-
-        /// <summary>Where the mouse points, in pixels of the grime image from its bottom-left corner.</summary>
+        /// <summary>Where the mouse points, in pixels of the close-up art from its bottom-left corner.</summary>
         Vector2 BrushPixel()
         {
             Vector3 world = closeUpCamera.ScreenToWorldPoint(input.AimScreenPosition);
             // Unity concept: InverseTransformPoint turns a world position into the object's own
             // units, undoing its position and its 3 times scale.
-            Vector2 local = grimeRenderer.transform.InverseTransformPoint(world);
-            var sprite = grimeRenderer.sprite;
+            Vector2 local = objectRenderer.transform.InverseTransformPoint(world);
+            var sprite = objectRenderer.sprite;
             return local * sprite.pixelsPerUnit + sprite.pivot;
         }
 
-        void RedrawGrime()
+        void ShowProgress()
         {
-            for (int y = 0; y < mask.Height; y++)
-                for (int x = 0; x < mask.Width; x++)
+            if (grime == null) return;
+            for (int i = 0; i < meterFills.Length && i < layers.Count; i++)
+            {
+                float fraction = CleanFraction(i);
+                if (meterFills[i] != null)
+                    meterFills[i].sizeDelta = new Vector2(meterFullWidths[i] * fraction, meterFills[i].sizeDelta.y);
+                if (i < meterLabels.Length && meterLabels[i] != null)
                 {
-                    int i = y * mask.Width + x;
-                    var c = grimeColours[i];
-                    c.a = (byte)Mathf.RoundToInt(mask.GrimeAt(x, y) * 255f);
-                    shownPixels[i] = c;
+                    string name = Cleaning.sections[i].name;
+                    meterLabels[i].text = grime.IsFinished(i)
+                        ? string.Format(finishedFormat, name)
+                        : string.Format(meterFormat, name, Mathf.FloorToInt(fraction * 100f));
                 }
-            grimeTexture.SetPixels32(shownPixels);
-            grimeTexture.Apply();
+            }
         }
 
-        // Escape. Leaving during the finishing pause still counts the object as finished.
-        void Leave() => Close();
-
+        /// <summary>
+        /// Escape, or the pause after finishing. Leaving before the big celebration still counts
+        /// the object as finished if every section is.
+        /// </summary>
         void Close()
         {
             if (closeRequested || session == null) return;
@@ -215,9 +232,7 @@ namespace BBQKing.Cleaning
 
         void OnDestroy()
         {
-            // Textures and sprites made while the game runs are not cleaned up automatically.
-            if (grimeSprite != null) Destroy(grimeSprite);
-            if (grimeTexture != null) Destroy(grimeTexture);
+            foreach (var layer in layers) layer.Dispose();
         }
     }
 }

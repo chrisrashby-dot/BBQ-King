@@ -15,7 +15,11 @@ MonoBehaviour:
   job: {fileID: 11400000, guid: 71015c4c6b6327b419e9b73e12d07bf4, type: 2}
   tool: {fileID: 11400000, guid: 054f9356e7a0e85469e9549a15544f06, type: 2}
   closeUpSprite: {fileID: 21300000, guid: 02fa6515a3f10ae49a0853513065bbb1, type: 3}
-  grimeSprite: {fileID: 21300000, guid: 85860f5c322521e429a0e80bffdf88be, type: 3}
+  sections:
+  - name: Top
+    grimeSprite: {fileID: 21300000, guid: 85860f5c322521e429a0e80bffdf88be, type: 3}
+  - name: Bottom
+    grimeSprite: {fileID: 21300000, guid: 0336c3fd86ad5d44487b82bd15f68f4c, type: 3}
   cleanPrompt: Clean the kettle grill
   lookPrompt: Look at the kettle grill
   notYetHint: It needs a good scrub, but the patio comes first.

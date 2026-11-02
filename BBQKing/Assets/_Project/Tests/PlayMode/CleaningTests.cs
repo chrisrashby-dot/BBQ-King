@@ -124,22 +124,27 @@ namespace BBQKing.Tests
         IEnumerator PointAtGrime(Vector2 offset)
         {
             var cam = GameObject.Find("Close-up Camera").GetComponent<Camera>();
-            var grime = GameObject.Find("Close-up/Grime").transform;
-            yield return PointAtScreen(cam.WorldToScreenPoint(grime.position + (Vector3)offset));
+            var grill = GameObject.Find("Close-up/Object").transform;
+            yield return PointAtScreen(cam.WorldToScreenPoint(grill.position + (Vector3)offset));
         }
+
+        const int Top = 0, Bottom = 1; // the kettle grill's sections, in the order of its data asset
 
         [UnityTest]
         public IEnumerator HoldingTheMouseScrubsGrimeAwayAndLeavingKeepsIt()
         {
             yield return OpenTheCloseUp();
             var closeUp = Object.FindAnyObjectByType<CleaningCloseUp>();
-            Assert.AreEqual(0f, closeUp.CleanFraction, "the grill starts grimy");
+            Assert.AreEqual(2, closeUp.LayerCount, "the kettle grill has a top and a bottom");
+            Assert.AreEqual(0f, closeUp.CleanFraction(Top), "the grill starts grimy");
 
-            yield return PointAtGrime(Vector2.zero);
+            yield return PointAtGrime(Vector2.zero); // the middle of the grate, in the top section
             yield return HoldLeftMouse(1f);
-            float scrubbed = closeUp.CleanFraction;
+            float scrubbed = closeUp.CleanFraction(Top);
             Assert.Greater(scrubbed, 0f, "holding the mouse should scrub some grime off");
-            Assert.Less(scrubbed, 0.5f, "one spot is nowhere near the whole grill");
+            Assert.Less(scrubbed, 0.5f, "one spot is nowhere near the whole top");
+            Assert.AreEqual(0f, closeUp.CleanFraction(Bottom), "the bottom has its own percentage, still untouched");
+            StringAssert.StartsWith("Top: ", GameObject.Find("Close-up UI/Meter Top Label").GetComponent<Text>().text);
 
             yield return Hold(Key.Escape, 0.05f);
             yield return Frames(3);
@@ -148,35 +153,53 @@ namespace BBQKing.Tests
             while (Object.FindAnyObjectByType<CleaningCloseUp>() == null && Time.time < giveUp) yield return null;
             yield return Frames(2);
             closeUp = Object.FindAnyObjectByType<CleaningCloseUp>();
-            Assert.AreEqual(scrubbed, closeUp.CleanFraction, 1e-5f, "coming back should keep the progress");
+            Assert.AreEqual(scrubbed, closeUp.CleanFraction(Top), 1e-5f, "coming back should keep the progress");
         }
 
         [UnityTest]
-        public IEnumerator ScrubbingTo95PercentFinishesJob2()
+        public IEnumerator FinishingEachSectionCelebratesThenTheWholeGrill()
         {
+            yield return OpenTheCloseUp();
+
             // A huge, fast brush, so the test needs only a few strokes. Put back afterwards,
-            // because the config is an asset shared with the game.
+            // because the config is an asset shared with the game. It is only loaded once the
+            // close-up scene is open, as nothing in the backyard uses it.
             var config = Resources.FindObjectsOfTypeAll<CleaningConfig>()[0];
             float radius = config.brushRadius, speed = config.scrubPerSecond;
             config.brushRadius = 20f;
             config.scrubPerSecond = 10f;
             try
             {
-                yield return OpenTheCloseUp();
                 var closeUp = Object.FindAnyObjectByType<CleaningCloseUp>();
-                var meter = GameObject.Find("Close-up UI/Meter Label").GetComponent<Text>();
+                var sectionsFinished = new System.Collections.Generic.List<int>();
+                int bigCelebrations = 0;
+                closeUp.SectionFinished += sectionsFinished.Add;
+                closeUp.AllFinished += () => bigCelebrations++;
 
-                // Brush over the grate in a grid of spots 2.5 world units apart.
-                for (float y = -5f; y <= 5f && !closeUp.IsFinished; y += 2.5f)
-                    for (float x = -5f; x <= 5f && !closeUp.IsFinished; x += 2.5f)
+                // Brush over the whole grill, top and bottom, in a grid of spots 2 world units apart.
+                for (float y = -6f; y <= 6f && !closeUp.IsFinished; y += 2f)
+                    for (float x = -6f; x <= 6f && !closeUp.IsFinished; x += 2f)
                     {
                         yield return PointAtGrime(new Vector2(x, y));
                         yield return HoldLeftMouse(0.15f);
                     }
 
-                Assert.IsTrue(closeUp.IsFinished, $"the grill should be finished (it reached {closeUp.CleanFraction:P0})");
-                Assert.AreEqual(1f, closeUp.CleanFraction, "the last 5% is wiped away for the player");
-                Assert.AreEqual("Spotless!", meter.text);
+                Assert.IsTrue(closeUp.IsFinished,
+                    $"the grill should be finished (top {closeUp.CleanFraction(Top):P0}, bottom {closeUp.CleanFraction(Bottom):P0})");
+                CollectionAssert.AreEquivalent(new[] { Top, Bottom }, sectionsFinished, "each section celebrates once");
+                Assert.AreEqual(1f, closeUp.CleanFraction(Top), "the last 5% is wiped away for the player");
+                Assert.AreEqual(1f, closeUp.CleanFraction(Bottom));
+                Assert.AreEqual("Top: Spotless!", GameObject.Find("Close-up UI/Meter Top Label").GetComponent<Text>().text);
+                Assert.AreEqual("Bottom: Spotless!", GameObject.Find("Close-up UI/Meter Bottom Label").GetComponent<Text>().text);
+
+                yield return new WaitForSeconds(0.3f);
+                Assert.IsNotNull(GameObject.Find("Close-up/Sparkle"), "a finished section should sparkle");
+
+                float waitForBig = Time.time + 3f;
+                while (bigCelebrations == 0 && Time.time < waitForBig) yield return null;
+                Assert.AreEqual(1, bigCelebrations, "finishing every section gives the big celebration");
+                yield return null;
+                Assert.Greater(GameObject.Find("Close-up UI/Flash").GetComponent<Image>().color.a, 0f, "the screen flashes");
 
                 float giveUp = Time.time + 5f;
                 while (SceneManager.GetSceneByName(CloseUpScene).isLoaded && Time.time < giveUp) yield return null;

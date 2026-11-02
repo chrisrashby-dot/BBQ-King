@@ -15,4 +15,15 @@ MonoBehaviour:
   brushRadius: 6
   scrubPerSecond: 3
   completeAt: 0.95
+  allDoneDelaySeconds: 0.5
   finishPauseSeconds: 1.5
+  sectionSparkles: 8
+  sectionSparkleScale: 1.5
+  sectionChime: {fileID: 8300000, guid: 4604d0344a70ca94889923bb4d36043b, type: 3}
+  allDoneSparkles: 24
+  allDoneSparkleScale: 3
+  flashStrength: 0.6
+  flashSeconds: 0.4
+  allDoneChime: {fileID: 8300000, guid: 888355246c72a084b92a8ba447ad1ee6, type: 3}
+  sparkleSeconds: 0.6
+  sparkleSpreadSeconds: 0.4

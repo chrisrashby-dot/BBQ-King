@@ -43,9 +43,9 @@ The kettle grill's tile on the patio never has a weed or trash on it.
 
 1. Walk up to the kettle grill on the patio (to the right of the letter). Before Job 1 is done, **E** only says the patio comes first.
 2. Once Job 1 is done, press **E** at the grill. The close-up opens over the backyard, with the grill grate covered in grime and the **wire brush** in hand.
-3. Hold the **left mouse button** and move over the grime to scrub it away. The meter under the title shows how clean the grill is.
+3. Hold the **left mouse button** and move over the grime to scrub it away. The grill has two sections, each with its own meter under the title: the **top** (the grate and the inside of the bowl) and the **bottom** (the outside of the bowl, below the rim).
 4. Press **Escape** to leave part way; the grime you scrubbed stays scrubbed when you come back (until you stop playing).
-5. At **95% clean** the rest wipes away by itself, "Spotless!" shows, and the close-up closes after a moment. "Grill cleaned!" appears, Job 2 is done, and the grill on the patio looks clean.
+5. When a section reaches **95% clean**, the rest of its grime wipes away, its meter says "Spotless!", sparkles twinkle over it and a chime sounds. When both sections are done, a bigger sparkle flashes over the whole grill with a triple chime, and the close-up closes after a moment. "Grill cleaned!" appears, Job 2 is done, and the grill on the patio looks clean.
 
 With a gamepad you can open and leave the close-up, but there is no way to move the brush yet; that comes with controller support later.
 
@@ -85,12 +85,12 @@ All gameplay values live in assets under `Assets/_Project/Data/`, not in scripts
 | `Data/Restoration/ClearingConfig` | The list of clearables, the hint texts, how much a weed shrinks with each pull, and how many patio slabs start weedy (45%) and how many of the rest have trash (15%). The last two only take effect when the scene is rebuilt |
 | `Data/Jobs/Job1_ClearThePatio` and the others | Each job's title, description, the jobs it needs first, its clearing area and its completion message |
 | `Data/Jobs/JobBook` | Which jobs exist, in jobs board order |
-| `Data/Cleaning/CleaningConfig` | The brush's radius (6 pixels of close-up art), how fast it scrubs (3, so a fully grimy spot clears in a third of a second), the finishing line (95%, from design.md 5.2) and the pause before the close-up closes (1.5 seconds) |
-| `Data/Cleaning/KettleGrill` | The kettle grill's job (Job 2), tool (wire brush), close-up art and grime layer, and its prompts and "not yet" hint |
+| `Data/Cleaning/CleaningConfig` | The brush's radius (6 pixels of close-up art), how fast it scrubs (3, so a fully grimy spot clears in a third of a second), the finishing line for each section (95%, from design.md 5.2), the pause before the big sparkle (0.5 seconds) and before the close-up closes (1.5 seconds), the sparkles (8 at 1.5 times size for a section, 24 at 3 times for the whole object, each lasting 0.6 seconds), the flash (60% white, fading over 0.4 seconds) and the two chimes |
+| `Data/Cleaning/KettleGrill` | The kettle grill's job (Job 2), tool (wire brush), close-up art, its sections (Top and Bottom, each with a name and a grime layer), and its prompts and "not yet" hint |
 
 The starting values in PlayerConfig, the clearables and the cleaning brush are first guesses, because design.md does not set them. Tune them by feel.
 
-Wording on the HUD and jobs board ("To do", "Locked", "{0} left") is set on the **Job HUD** and **Jobs Board** objects in the scene, and the close-up meter's wording ("{0}% clean", "Spotless!") on the **Close-up** object in `CloseUp_Cleaning`. Rebuilding the scene resets those, so change them in the builder if you want to keep them.
+Wording on the HUD and jobs board ("To do", "Locked", "{0} left") is set on the **Job HUD** and **Jobs Board** objects in the scene, and the close-up meters' wording ("{0}: {1}% clean", "{0}: Spotless!") on the **Close-up** object in `CloseUp_Cleaning`. Rebuilding the scene resets those, so change them in the builder if you want to keep them.
 
 The letter text is a clearly marked placeholder, because the relative's name is still an open question in design.md.
 
@@ -125,7 +125,7 @@ Assets/_Project/
 - **Interactables:** anything with a component implementing `IInteractable` and a Collider2D can be used with E. `MessageInteractable` is the simplest kind: it posts a `MessageData` to `ShowMessageChannel`, and `MessagePanelUI` shows it.
 - **Tools and clearing:** the player's `ToolBelt` posts the selected slot to `SelectedToolSlotChannel` (the toolbar listens). `ToolUser` picks the target tile and posts each use to `ToolUseChannel`. The `ClearingSystem` (on the **Restoration** object) hears it, checks the tool against the tile's `ClearableData`, clears the tile and posts to `TileClearedChannel`; wrong tools post a hint to `HintChannel`.
 - **Jobs:** the `JobBook` asset holds every job and how far along it is, shared by everyone who needs it. The `JobTracker` counts each clearing job's tiles at the start, counts down on `TileClearedChannel`, and shows the completion message. The job HUD and jobs board redraw whenever the job book changes. Progress is not saved yet (M5).
-- **Cleaning close-ups:** the kettle grill's `CleanableObject` asks for its close-up on the `CloseUpSession` asset. The `CloseUpLoader` (on the **Cleaning** object in the backyard) hears it, hides the backyard UI, switches the controls to the CloseUp map and loads `CloseUp_Cleaning` **additively**, on top of the backyard. That scene's own camera draws over the backyard camera; its art sits far away at (1000, 1000) so neither camera sees the other's objects. `CleaningCloseUp` turns the grime image into a `GrimeMask`, scrubs it under the mouse and shows the meter. At 95% it asks the session to close as finished; the loader unloads the scene, gives walking back and marks the job done, which shows its completion message. The session keeps each object's grime, so leaving part way loses nothing.
+- **Cleaning close-ups:** the kettle grill's `CleanableObject` asks for its close-up on the `CloseUpSession` asset. The `CloseUpLoader` (on the **Cleaning** object in the backyard) hears it, hides the backyard UI, switches the controls to the CloseUp map and loads `CloseUp_Cleaning` **additively**, on top of the backyard. That scene's own camera draws over the backyard camera; its art sits far away at (1000, 1000) so neither camera sees the other's objects. `CleaningCloseUp` makes a `GrimeLayer` (a `GrimeMask` and the picture drawn from it) for each of the object's sections, scrubs them under the mouse and shows a meter for each. `SectionedGrime` holds the rules: each section finishes on its own at 95%, and the object when every section has. `CleaningCloseUp` raises `SectionFinished` and `AllFinished` events, and `CloseUpEffects` on the same object plays the sparkles, the flash and the chimes in reply. After the big celebration it asks the session to close as finished; the loader unloads the scene, gives walking back and marks the job done, which shows its completion message. The session keeps each object's grime, so leaving part way loses nothing.
 
 ## Rebuilding the scene
 
@@ -155,7 +155,11 @@ Overwrite a PNG in `Assets/_Project/Art/Placeholder/` with your own file of the 
 | `Tools/tool_gloves.png`, `tool_trash_bag.png`, `tool_wire_brush.png` | 32 x 32 | Centre | Toolbar icons |
 | `Equipment/kettle_grill_dirty.png`, `kettle_grill_clean.png` | 32 x 32 | Bottom centre | The grill on the patio, before and after Job 2. Three-quarter view: the top of the lid shows, with the handle on it |
 | `CloseUps/closeup_kettle_grill_grate.png` | 128 x 128 | Centre | The clean grill in the close-up, in the same three-quarter view as the rest of the game (the grate as a wide oval, the front of the bowl below), drawn 3 times bigger |
-| `CloseUps/closeup_kettle_grill_grate_grime.png` | 128 x 128 | Centre | The grime over it. See-through parts start clean and do not count towards the meter. **Read/Write** must stay on in its import settings, because the game wipes it pixel by pixel |
+| `CloseUps/closeup_kettle_grill_grate_grime.png` | 128 x 128 | Centre | The **top** section's grime: over the grate and the inside of the bowl. See-through parts do not count towards its meter. **Read/Write** must stay on in its import settings, because the game wipes it pixel by pixel |
+| `CloseUps/closeup_kettle_grill_bowl_grime.png` | 128 x 128 | Centre | The **bottom** section's grime: over the outside of the bowl, below the rim. Same rules as the top's |
+| `Effects/sparkle_<0-3>.png` | 32 x 32 | Centre | The cleaning sparkle, played in order: a dot, a growing star, the full star, a shrinking star |
+
+The chimes are WAV files in `Assets/_Project/Audio/Placeholder/`, made in code by `Editor/PlaceholderAudio.cs` and named after the design.md section 8 audio list: `clean_chime.wav` (one bell note, for a finished section) and `clean_chime_triple.wav` (three rising notes, for the whole object). Replace them the same way: a file of the same name, and every use plays the new sound.
 | `UI/ui_panel_dark.png`, `ui_panel_paper.png`, `ui_slot.png`, `ui_slot_selected.png` | 12 x 12 | Centre | 9-sliced, 4 px border (set in the Sprite Editor) |
 | `UI/ui_tile_highlight.png` | 32 x 32 | Centre | Drawn over the target tile in the world; keep the middle mostly see-through |
 
@@ -177,13 +181,13 @@ If you ever set them by hand: select the image, set these in the Inspector, then
 ## Running the tests
 
 1. Open **Window > General > Test Runner**.
-2. On the **EditMode** tab, click **Run All**. These check the facing and walk-cycle rules, toolbar slots, tool aiming, clearing counts, job statuses and the grime maths, including the 95% rule (48 tests).
+2. On the **EditMode** tab, click **Run All**. These check the facing and walk-cycle rules, toolbar slots, tool aiming, clearing counts, job statuses, the grime maths including the 95% rule, and the section rules (51 tests).
 3. On the **PlayMode** tab, click **Run All**. These load the Backyard and press keys and mouse buttons on a pretend keyboard and mouse (22 tests):
    - walking, the letter, the back door, fences (including standing behind the bottom fence) and the resolution switch;
    - pulling a weed, nothing happening out of reach, the highlight only over things to clear, the trash bag being picked automatically, and the hint for a wrong tool chosen by hand;
    - the job HUD count, the jobs board on Tab, and finishing Job 1;
    - stacked panels and handing aiming to a gamepad;
-   - the kettle grill blocking the player, its "not yet" hint, opening and leaving the close-up, scrubbing and keeping progress, and scrubbing to 95% to finish Job 2.
+   - the kettle grill blocking the player, its "not yet" hint, opening and leaving the close-up, scrubbing one section without touching the other and keeping progress, and finishing both sections (each sparkles, then the big flash) to finish Job 2.
 
 ## Git and Git LFS
 

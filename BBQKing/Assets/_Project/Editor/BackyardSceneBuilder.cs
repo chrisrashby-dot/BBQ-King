@@ -68,6 +68,7 @@ namespace BBQKing.EditorTools
         public static void Build()
         {
             PlaceholderArt.GenerateAll();
+            PlaceholderAudio.GenerateAll();
             ConfigureRenderer();
 
             // Create the empty scene BEFORE loading tiles and data assets: opening a new scene

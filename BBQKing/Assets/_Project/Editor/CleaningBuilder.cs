@@ -64,11 +64,31 @@ namespace BBQKing.EditorTools
                 grill.job = AssetDatabase.LoadAssetAtPath<JobData>(RestorationBuilder.Job2Path);
                 grill.tool = a.wireBrush; // design.md decision log, 2 Nov 2026: Job 2 uses the wire brush only
                 grill.closeUpSprite = LoadSprite(PlaceholderArt.CloseUpKettleGrate);
-                grill.grimeSprite = LoadSprite(PlaceholderArt.CloseUpKettleGrateGrime);
                 grill.cleanPrompt = "Clean the kettle grill";
                 grill.lookPrompt = "Look at the kettle grill";
                 grill.notYetHint = "It needs a good scrub, but the patio comes first.";
                 EditorUtility.SetDirty(grill);
+            }
+            if (a.kettleGrill.sections == null || a.kettleGrill.sections.Length == 0)
+            {
+                // Sections arrived after the grill was first made (design.md decision log,
+                // 2 Nov 2026), so an existing grill gets them too. Sections you have set are kept.
+                a.kettleGrill.sections = new[]
+                {
+                    new CleaningSection { name = "Top", grimeSprite = LoadSprite(PlaceholderArt.CloseUpKettleGrateGrime) },
+                    new CleaningSection { name = "Bottom", grimeSprite = LoadSprite(PlaceholderArt.CloseUpKettleBowlGrime) },
+                };
+                EditorUtility.SetDirty(a.kettleGrill);
+            }
+
+            // The chimes, also added to an existing config if it has none yet.
+            if (a.config.sectionChime == null || a.config.allDoneChime == null)
+            {
+                if (a.config.sectionChime == null)
+                    a.config.sectionChime = AssetDatabase.LoadAssetAtPath<AudioClip>(PlaceholderAudio.CleanChime);
+                if (a.config.allDoneChime == null)
+                    a.config.allDoneChime = AssetDatabase.LoadAssetAtPath<AudioClip>(PlaceholderAudio.CleanChimeTriple);
+                EditorUtility.SetDirty(a.config);
             }
             return a;
         }
@@ -155,10 +175,10 @@ namespace BBQKing.EditorTools
 
             var cam = BuildCloseUpCamera(display);
 
-            // The object and its grime. The sprites shown here are the kettle grill's, so the scene
-            // looks right while editing; the game sets them from the close-up session.
+            // The object. The sprite shown here is the kettle grill's, so the scene looks right
+            // while editing; the game sets it from the close-up session and adds a grime layer
+            // over it for each section.
             var objectRenderer = CloseUpSprite(root.transform, "Object", a.kettleGrill.closeUpSprite, 0);
-            var grimeRenderer = CloseUpSprite(root.transform, "Grime", a.kettleGrill.grimeSprite, 1);
 
             var ui = BuildCloseUpUi(display, a);
 
@@ -168,12 +188,24 @@ namespace BBQKing.EditorTools
             SetRef(closeUp, "config", a.config);
             SetRef(closeUp, "closeUpCamera", cam);
             SetRef(closeUp, "objectRenderer", objectRenderer);
-            SetRef(closeUp, "grimeRenderer", grimeRenderer);
             SetRef(closeUp, "titleLabel", ui.title);
             SetRef(closeUp, "toolIcon", ui.toolIcon);
             SetRef(closeUp, "toolLabel", ui.toolLabel);
-            SetRef(closeUp, "meterFill", ui.meterFill);
-            SetRef(closeUp, "meterLabel", ui.meterLabel);
+            SetRefs(closeUp, "meterFills", ui.meterFills);
+            SetRefs(closeUp, "meterLabels", ui.meterLabels);
+
+            // The rewards: sparkles and chimes when sections finish, and a flash at the end.
+            var audio = root.AddComponent<AudioSource>();
+            audio.playOnAwake = false;
+            audio.spatialBlend = 0f; // heard the same anywhere, not placed in the world
+            var effects = root.AddComponent<CloseUpEffects>();
+            SetRef(effects, "closeUp", closeUp);
+            SetRef(effects, "config", a.config);
+            SetRef(effects, "audioSource", audio);
+            var frames = new Object[PlaceholderArt.SparkleFrames];
+            for (int i = 0; i < frames.Length; i++) frames[i] = LoadSprite(PlaceholderArt.Sparkle(i));
+            SetRefs(effects, "sparkleFrames", frames);
+            SetRef(effects, "flash", ui.flash);
 
             PlaceholderAssetWriter.EnsureFolder(CloseUpScenePath);
             EditorSceneManager.SaveScene(scene, CloseUpScenePath);
@@ -218,9 +250,9 @@ namespace BBQKing.EditorTools
 
         struct CloseUpUi
         {
-            public Text title, toolLabel, meterLabel;
-            public Image toolIcon;
-            public RectTransform meterFill;
+            public Text title, toolLabel;
+            public Image toolIcon, flash;
+            public Object[] meterFills, meterLabels; // one per section, as the builder helpers want them
         }
 
         static readonly Color32 MeterGreen = new Color32(0x6a, 0xa8, 0x4a, 0xff);
@@ -240,20 +272,30 @@ namespace BBQKing.EditorTools
             UiFactory.Anchor(ui.title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -8f), new Vector2(400f, 22f));
             ui.title.gameObject.AddComponent<Outline>().effectColor = UiFactory.InkText;
 
-            // The progress meter under the title: a dark frame with a green bar that grows from
-            // the left, and "37% clean" below it.
-            const float meterWidth = 200f;
-            var frame = UiFactory.Image(canvasGo.transform, "Meter", PlaceholderArt.UiPanelDark);
-            UiFactory.Anchor(frame.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -32f), new Vector2(meterWidth + 4f, 12f));
-            var fill = new GameObject("Fill", typeof(RectTransform)).AddComponent<Image>();
-            fill.transform.SetParent(frame.transform, false);
-            fill.color = MeterGreen; // a plain coloured rectangle: no sprite needed
-            fill.raycastTarget = false;
-            UiFactory.Anchor(fill.rectTransform, new Vector2(0f, 0.5f), new Vector2(2f, 0f), new Vector2(meterWidth, 8f));
-            ui.meterFill = fill.rectTransform;
-            ui.meterLabel = UiFactory.Text(canvasGo.transform, "Meter Label", "0% clean", 10, TextAnchor.UpperCenter, UiFactory.LightText);
-            UiFactory.Anchor(ui.meterLabel.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -46f), new Vector2(200f, 14f));
-            ui.meterLabel.gameObject.AddComponent<Outline>().effectColor = UiFactory.InkText;
+            // A progress meter for each section, side by side under the title: a dark frame with a
+            // green bar that grows from the left, and "Top: 37% clean" below it.
+            const float meterWidth = 160f, meterGap = 24f;
+            var sections = a.kettleGrill.sections;
+            ui.meterFills = new Object[sections.Length];
+            ui.meterLabels = new Object[sections.Length];
+            float rowWidth = sections.Length * (meterWidth + 4f) + (sections.Length - 1) * meterGap;
+            for (int i = 0; i < sections.Length; i++)
+            {
+                float x = -rowWidth / 2f + (meterWidth + 4f) / 2f + i * (meterWidth + 4f + meterGap);
+                var frame = UiFactory.Image(canvasGo.transform, $"Meter {sections[i].name}", PlaceholderArt.UiPanelDark);
+                UiFactory.Anchor(frame.rectTransform, new Vector2(0.5f, 1f), new Vector2(x, -32f), new Vector2(meterWidth + 4f, 12f));
+                var fill = new GameObject("Fill", typeof(RectTransform)).AddComponent<Image>();
+                fill.transform.SetParent(frame.transform, false);
+                fill.color = MeterGreen; // a plain coloured rectangle: no sprite needed
+                fill.raycastTarget = false;
+                UiFactory.Anchor(fill.rectTransform, new Vector2(0f, 0.5f), new Vector2(2f, 0f), new Vector2(meterWidth, 8f));
+                ui.meterFills[i] = fill.rectTransform;
+
+                var label = UiFactory.Text(canvasGo.transform, $"Meter {sections[i].name} Label", $"{sections[i].name}: 0% clean", 10, TextAnchor.UpperCenter, UiFactory.LightText);
+                UiFactory.Anchor(label.rectTransform, new Vector2(0.5f, 1f), new Vector2(x, -46f), new Vector2(meterWidth, 14f));
+                label.gameObject.AddComponent<Outline>().effectColor = UiFactory.InkText;
+                ui.meterLabels[i] = label;
+            }
 
             // The tool in hand, bottom left: one slot like the backyard toolbar, with its name.
             var slot = UiFactory.Image(canvasGo.transform, "Tool Slot", PlaceholderArt.UiSlotSelected);
@@ -264,6 +306,14 @@ namespace BBQKing.EditorTools
 
             var help = UiFactory.Text(canvasGo.transform, "Help", "Hold the left mouse button to scrub    [Esc] Leave", 10, TextAnchor.LowerCenter, UiFactory.LightText);
             UiFactory.Anchor(help.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 8f), new Vector2(400f, 14f));
+
+            // The white flash when everything is clean: covers the screen, see-through until then.
+            // Made last, so it draws over the rest of the UI.
+            ui.flash = new GameObject("Flash", typeof(RectTransform)).AddComponent<Image>();
+            ui.flash.transform.SetParent(canvasGo.transform, false);
+            ui.flash.color = new Color(1f, 1f, 1f, 0f);
+            ui.flash.raycastTarget = false;
+            UiFactory.Stretch(ui.flash.rectTransform, 0, 0, 0, 0);
             return ui;
         }
     }

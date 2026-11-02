@@ -32,16 +32,16 @@ namespace BBQKing.Cleaning
         // The grime left on each object, kept when the player leaves part way so they can carry
         // on later (design.md decision log, 2 Nov 2026). Not saved into the asset; saving to a
         // file arrives in M5.
-        [NonSerialized] readonly Dictionary<CleanableData, GrimeMask> progress = new Dictionary<CleanableData, GrimeMask>();
+        [NonSerialized] readonly Dictionary<CleanableData, SectionedGrime> progress = new Dictionary<CleanableData, SectionedGrime>();
 
         /// <summary>The grime left on an object from an earlier visit, or null if it has not been started.</summary>
-        public GrimeMask ProgressFor(CleanableData what) =>
-            what != null && progress.TryGetValue(what, out var mask) ? mask : null;
+        public SectionedGrime ProgressFor(CleanableData what) =>
+            what != null && progress.TryGetValue(what, out var grime) ? grime : null;
 
-        /// <summary>Remembers an object's grime. The close-up keeps changing the same mask as the player scrubs.</summary>
-        public void KeepProgress(CleanableData what, GrimeMask mask)
+        /// <summary>Remembers an object's grime. The close-up keeps changing the same object as the player scrubs.</summary>
+        public void KeepProgress(CleanableData what, SectionedGrime grime)
         {
-            if (what != null && mask != null) progress[what] = mask;
+            if (what != null && grime != null) progress[what] = grime;
         }
 
         /// <summary>

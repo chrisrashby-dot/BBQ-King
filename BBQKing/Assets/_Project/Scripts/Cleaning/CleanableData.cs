@@ -22,10 +22,9 @@ namespace BBQKing.Cleaning
         [Tooltip("The clean object, drawn in the close-up.")]
         public Sprite closeUpSprite;
 
-        [Tooltip("The grime drawn over it, the same size. Its see-through parts start clean. The " +
-                 "image must have Read/Write enabled in its import settings, because the game wipes " +
-                 "it away pixel by pixel.")]
-        public Sprite grimeSprite;
+        [Tooltip("The parts cleaned on their own, each with its own grime layer and percentage, " +
+                 "for example Top and Bottom. The job is done when every section is.")]
+        public CleaningSection[] sections = new CleaningSection[0];
 
         [Header("Wording")]
         [Tooltip("Shown after the key when the job is available, for example \"Clean the kettle grill\".")]

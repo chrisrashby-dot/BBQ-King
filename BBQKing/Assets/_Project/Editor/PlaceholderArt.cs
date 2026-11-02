@@ -57,7 +57,14 @@ namespace BBQKing.EditorTools
         // ----- Close-ups (128 x 128, centre pivot, drawn at 3 times size in the close-up scene).
         // The grime layer is the same size; the game wipes it away, so it is imported readable.
         public const string CloseUpKettleGrate = Root + "CloseUps/closeup_kettle_grill_grate.png";
-        public const string CloseUpKettleGrateGrime = Root + "CloseUps/closeup_kettle_grill_grate_grime.png";
+        public const string CloseUpKettleGrateGrime = Root + "CloseUps/closeup_kettle_grill_grate_grime.png"; // top section
+        public const string CloseUpKettleBowlGrime = Root + "CloseUps/closeup_kettle_grill_bowl_grime.png";   // bottom section
+
+        // ----- Effects (32 x 32, centre pivot)
+        public const int SparkleFrames = 4;
+
+        /// <summary>For example Effects/sparkle_0.png: the cleaning sparkle, played in order.</summary>
+        public static string Sparkle(int frame) => Root + $"Effects/sparkle_{frame}.png";
 
         // ----- Objects (32 x 32; letter centre pivot, door bottom-centre pivot)
         public const string Letter = Root + "Objects/letter.png";
@@ -130,10 +137,13 @@ namespace BBQKing.EditorTools
             Tile(KettleGrillClean, () => DrawKettleGrill(false), SpriteAlignment.BottomCenter);
 
             Tile(CloseUpKettleGrate, DrawKettleGrate);
-            if (PlaceholderAssetWriter.SavePngIfMissing(CloseUpKettleGrateGrime, DrawKettleGrateGrime()))
+            GrimeImage(CloseUpKettleGrateGrime, DrawKettleGrateGrime);
+            GrimeImage(CloseUpKettleBowlGrime, DrawKettleBowlGrime);
+
+            for (int frame = 0; frame < SparkleFrames; frame++)
             {
-                PlaceholderAssetWriter.ConfigureSprite(CloseUpKettleGrateGrime, SpriteAlignment.Center);
-                PlaceholderAssetWriter.MakeReadable(CloseUpKettleGrateGrime);
+                int f = frame; // each drawing needs its own copy of the frame number
+                Tile(Sparkle(f), () => DrawSparkle(f));
             }
 
             Tile(Letter, DrawLetter);
@@ -148,6 +158,14 @@ namespace BBQKing.EditorTools
                     if (PlaceholderAssetWriter.SavePngIfMissing(path, DrawPlayer(facing, frame)))
                         PlaceholderAssetWriter.ConfigureSprite(path, SpriteAlignment.BottomCenter);
                 }
+        }
+
+        /// <summary>A grime layer: imported readable, because the game wipes it away pixel by pixel.</summary>
+        static void GrimeImage(string path, System.Func<PixelCanvas> draw)
+        {
+            if (!PlaceholderAssetWriter.SavePngIfMissing(path, draw())) return;
+            PlaceholderAssetWriter.ConfigureSprite(path, SpriteAlignment.Center);
+            PlaceholderAssetWriter.MakeReadable(path);
         }
 
         static void Tile(string path, System.Func<PixelCanvas> draw, SpriteAlignment pivot = SpriteAlignment.Center)
@@ -745,6 +763,15 @@ namespace BBQKing.EditorTools
         const float GrateRadiusX = 54f, GrateRadiusY = 36f;     // the cooking grate
         const float BodyRadiusY = 74f;                          // how far the bowl's front curves down
 
+        /// <summary>
+        /// True for pixels on the outside of the bowl below the rim: the lower half of a tall oval,
+        /// where it shows under the rim. This is the close-up's "bottom" section.
+        /// </summary>
+        static bool IsBowlFront(int x, int y) =>
+            y + 0.5f < GrillCentreY
+            && OvalDistance(x, y, RimRadiusX, BodyRadiusY) <= 1f
+            && OvalDistance(x, y, RimRadiusX, RimRadiusY) > 1f;
+
         /// <summary>How far a pixel is from the grill's centre, as a share of an oval's size (1 = on its edge).</summary>
         static float OvalDistance(int x, int y, float radiusX, float radiusY)
         {
@@ -767,10 +794,8 @@ namespace BBQKing.EditorTools
                 {
                     float dx = x + 0.5f - GrillCentreX;
                     bool rim = OvalDistance(x, y, RimRadiusX, RimRadiusY) <= 1f;
-                    // The front of the bowl: the lower half of a tall oval under the rim.
-                    bool front = y + 0.5f < GrillCentreY && OvalDistance(x, y, RimRadiusX, BodyRadiusY) <= 1f;
 
-                    if (front && !rim)
+                    if (IsBowlFront(x, y))
                     {
                         // Lit on the left, darker on the right and around the curve at the bottom.
                         var colour = dx < -RimRadiusX * 0.55f ? KettleLight : KettleMid;
@@ -828,6 +853,68 @@ namespace BBQKing.EditorTools
                     colour.a = (byte)(patch % 5 == 0 ? 190 : 245);
                     c.Set(x, y, colour);
                 }
+            return c;
+        }
+
+        /// <summary>
+        /// Grease and soot on the outside of the bowl, below the rim: the close-up's bottom section.
+        /// The patches are tall and thin, like old drips running down the kettle. Everything else is
+        /// see-through, so it belongs to the top section or starts clean.
+        /// </summary>
+        static PixelCanvas DrawKettleBowlGrime()
+        {
+            var c = new PixelCanvas(CloseUpSize, CloseUpSize);
+            for (int y = 0; y < CloseUpSize; y++)
+                for (int x = 0; x < CloseUpSize; x++)
+                {
+                    if (!IsBowlFront(x, y)) continue;
+
+                    int drip = Hash(x / 3, y / 9, 61) % 100;
+                    int speck = Hash(x, y, 62) % 100;
+                    Color32 colour = drip < 50 ? GrimeBlack : drip < 85 ? GrimeBrown : Rust;
+                    if (speck < 6) colour = RustLight;
+                    colour.a = (byte)(drip % 4 == 0 ? 180 : 240);
+                    c.Set(x, y, colour);
+                }
+            return c;
+        }
+
+        // ------------------------------------------------------------------ effects
+
+        static readonly Color32 SparkleWhite = PixelCanvas.Hex("#ffffff");
+        static readonly Color32 SparkleYellow = PixelCanvas.Hex("#fff2a8");
+
+        /// <summary>
+        /// One frame of the cleaning sparkle: a four-pointed star that grows from a dot (frame 0)
+        /// to full size (frame 2) and shrinks again (frame 3). White in the middle, pale gold
+        /// towards the tips.
+        /// </summary>
+        static PixelCanvas DrawSparkle(int frame)
+        {
+            var c = new PixelCanvas(32, 32);
+            int[] armLengths = { 2, 6, 11, 6 };
+            int arm = armLengths[Mathf.Clamp(frame, 0, armLengths.Length - 1)];
+            const int centre = 16;
+
+            for (int i = -arm; i <= arm; i++)
+            {
+                int distance = Mathf.Abs(i);
+                var colour = distance <= arm / 3 ? SparkleWhite : distance < arm ? SparkleYellow : Brass;
+                c.Set(centre + i, centre, colour);
+                c.Set(centre, centre + i, colour);
+            }
+            if (frame >= 1)
+            {
+                // A small cross in the middle makes the star look brighter, and short diagonals
+                // on the biggest frame make it twinkle.
+                c.FillRect(centre - 1, centre - 1, 3, 3, SparkleWhite);
+                if (frame == 2)
+                    for (int i = 2; i <= 4; i++)
+                    {
+                        c.Set(centre + i, centre + i, SparkleYellow); c.Set(centre - i, centre + i, SparkleYellow);
+                        c.Set(centre + i, centre - i, SparkleYellow); c.Set(centre - i, centre - i, SparkleYellow);
+                    }
+            }
             return c;
         }
 
