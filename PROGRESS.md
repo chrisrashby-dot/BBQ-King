@@ -7,7 +7,7 @@ Claude Code updates this file at the end of every session. Newest entry at the t
 | Milestone | Status |
 | --- | --- |
 | M1 Foundations | Done (play-tested 1 Nov 2026) |
-| M2 Restoration | Built; play-tested once (2 Nov 2026), targeting changed |
+| M2 Restoration | Done (play-tested 2 Nov 2026) |
 | M3 Cleaning | Not started |
 | M4 First cookout | Not started |
 | M5 Economy and saving | Not started |
@@ -16,6 +16,14 @@ Claude Code updates this file at the end of every session. Newest entry at the t
 | M8 Polish and playtest | Not started |
 
 ## Session log
+
+### 2 Nov 2026: new laptop, M2 signed off
+
+- Moved to a new laptop. The repository was cloned fresh, with Git LFS and Unity 6000.6.7f1 at the same path as before.
+- Batch-mode tests on the new laptop: 38 EditMode and 14 PlayMode tests pass, with no compiler errors or warnings.
+- The developer play-tested the M2 changes by hand (tools only next to the player, the highlight only over a weed or trash, the automatic tool choice with the growing toolbar slot). They all work, so **M2 is done**.
+
+Next: **M3 Cleaning** (close-up scrubbing scene, Job 2 the kettle grill, 95% rule).
 
 ### 1 Nov 2026: M2 Restoration
 
