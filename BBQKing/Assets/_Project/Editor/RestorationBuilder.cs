@@ -72,7 +72,7 @@ namespace BBQKing.EditorTools
             };
             a.trash = new[]
             {
-                LoadOrCreateClearable("TrashBag", "overgrowth_rubbish_bag", PlaceholderArt.RubbishBag, a.trashBag, 1, null),
+                LoadOrCreateClearable("TrashBag", "overgrowth_trash_bag", PlaceholderArt.TrashBag, a.trashBag, 1, null),
                 LoadOrCreateClearable("TrashCans", "overgrowth_rubbish_cans", PlaceholderArt.RubbishCans, a.trashBag, 1, null),
                 LoadOrCreateClearable("TrashPotBroken", "overgrowth_rubbish_pot_broken", PlaceholderArt.RubbishPotBroken, a.trashBag, 1, null),
             };

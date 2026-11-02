@@ -34,7 +34,7 @@ namespace BBQKing.EditorTools
         public const string WeedSmall = Root + "Overgrowth/weed_small.png";
         public const string WeedMedium = Root + "Overgrowth/weed_medium.png";
         public const string WeedLarge = Root + "Overgrowth/weed_large.png";
-        public const string RubbishBag = Root + "Overgrowth/rubbish_bag.png";
+        public const string TrashBag = Root + "Overgrowth/trash_bag.png";
         public const string RubbishCans = Root + "Overgrowth/rubbish_cans.png";
         public const string RubbishPotBroken = Root + "Overgrowth/rubbish_pot_broken.png";
 
@@ -102,7 +102,7 @@ namespace BBQKing.EditorTools
             Tile(WeedSmall, () => DrawWeed(0));
             Tile(WeedMedium, () => DrawWeed(1));
             Tile(WeedLarge, () => DrawWeed(2));
-            Tile(RubbishBag, DrawRubbishBag);
+            Tile(TrashBag, DrawTrashBagOnGround);
             Tile(RubbishCans, DrawRubbishCans);
             Tile(RubbishPotBroken, DrawRubbishPotBroken);
 
@@ -510,7 +510,7 @@ namespace BBQKing.EditorTools
         }
 
         /// <summary>A black trash bag slumped on its side.</summary>
-        static PixelCanvas DrawRubbishBag()
+        static PixelCanvas DrawTrashBagOnGround()
         {
             var c = new PixelCanvas(32, 32);
             c.FillRect(7, 7, 16, 11, BagMid);

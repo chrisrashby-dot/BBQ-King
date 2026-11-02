@@ -132,7 +132,7 @@ Overwrite a PNG in `Assets/_Project/Art/Placeholder/` with your own file of the 
 | `Objects/letter.png` | 32 x 32 | Centre | |
 | `Objects/house_back_door.png` | 32 x 32 | Bottom centre | Transparent around the door so the wall shows through. The bottom pivot makes it sort in front of the wall and behind the player |
 | `Overgrowth/weed_small.png`, `weed_medium.png`, `weed_large.png` | 32 x 32 | Centre | Transparent so the slab shows. Bigger weeds take more pulls, so make the sizes easy to tell apart |
-| `Overgrowth/rubbish_bag.png`, `rubbish_cans.png`, `rubbish_pot_broken.png` | 32 x 32 | Centre | Transparent so the slab shows |
+| `Overgrowth/trash_bag.png`, `rubbish_cans.png`, `rubbish_pot_broken.png` | 32 x 32 | Centre | Transparent so the slab shows |
 | `Tools/tool_gloves.png`, `tool_trash_bag.png` | 32 x 32 | Centre | Toolbar icons |
 | `UI/ui_panel_dark.png`, `ui_panel_paper.png`, `ui_slot.png`, `ui_slot_selected.png` | 12 x 12 | Centre | 9-sliced, 4 px border (set in the Sprite Editor) |
 | `UI/ui_tile_highlight.png` | 32 x 32 | Centre | Drawn over the target tile in the world; keep the middle mostly see-through |
