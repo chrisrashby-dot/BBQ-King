@@ -160,10 +160,10 @@ This section defines how each system works. All numbers are starting values to t
 
 ### 5.2 Restoration
 
-- **Clearing:** tiles in the world map have an overgrowth or rubbish state. The player uses a tool on a tile to clear it in one to three actions, depending on the tile and tool.
+- **Clearing:** tiles in the world map have an overgrowth or rubbish state. The player uses a tool on a tile to clear it in one to three actions, depending on the tile and tool. Only tiles next to the player (diagonals included) or the tile they stand on can be worked on. Pointing at a weed or piece of trash highlights it and picks the tool it needs automatically.
 - **Cleaning:** objects (grill, smoker, patio furniture) open a close-up scene. A grime layer covers the object; holding the mouse button with a tool erases grime under a circular brush. The job is complete at 95% clean, so players never hunt for the last pixel.
 - **Repairing:** some jobs need parts (fence panels, a door seal), bought at the hardware store.
-- **Tools:** gloves and bin bags, rake, shears, scraper, wire brush and hose in Act 1. Upgrades increase brush size and speed.
+- **Tools:** gloves, trash bags, rake, shears, scraper, wire brush and hose in Act 1. Gloves and trash bags are separate tools: gloves pull weeds, the trash bag picks up trash. Upgrades increase brush size and speed.
 
 ### 5.3 Event briefs and menu planning
 
@@ -228,7 +228,7 @@ Autosave after each loop step and at the end of each weekend. Manual save anywhe
 | Interact, pick up, open close-up | E |
 | Use tool, scrub, flip food | Left mouse button (hold to scrub) |
 | Cancel, put down | Right mouse button |
-| Select tool | 1 to 6, or mouse wheel |
+| Select tool | Automatic when pointing at something to clear; or 1 to 6, or mouse wheel |
 | Jobs board and journal | Tab |
 | Fast-forward to next check-in | Space (only during long cooks) |
 | Pause menu, leave close-up | Escape |
@@ -299,7 +299,7 @@ Everything Act 1 needs, so art and build work can be tracked. Placeholders are f
 | Equipment | Kettle grill (dirty, clean), offset smoker (rusted, restored), chimney starter, thermometer, gazebo |
 | Furniture | Patio table, chairs, picnic bench, cool box, kids' paddling pool, bunting, string lights |
 | Shed and wood | Shed (cluttered, tidy), woodpile (wet, dry, stacked), axe block |
-| Tools | Gloves, bin bag, rake, shears, mower, scraper, wire brush, hose |
+| Tools | Gloves, trash bag, rake, shears, mower, scraper, wire brush, hose |
 | Food | Burger, hot dog, chicken thigh, pork ribs, brisket (each in raw, cooking, perfect, overdone, burnt), corn, coleslaw, potato salad, buns, birthday cake |
 | Characters | Player (4 directions, walk, interact), 6 guest bases with palette swaps, 2 neighbours, children (2 bases) |
 | Close-ups | Kettle grill grate, smoker body, smoker firebox (each with a grime layer) |
@@ -352,6 +352,8 @@ Newest decisions at the bottom. When a decision changes, add a new row rather th
 | 31 Oct 2026 | Strictly single-player | Simpler build; suits the cosy pace |
 | 31 Oct 2026 | Pitch document became this design document | Moving into the specification phase |
 | 31 Oct 2026 | 960x540 reference resolution instead of 640x360 (confirmed by testing) | Space Station 13 shows a wide area with small-looking sprites; 960x540 gives a wider view and scales cleanly on 1080p and 4K |
+| 1 Nov 2026 | Gloves and trash bags are separate tools; "bin bag" renamed "trash bag" | Each tool clears one kind of thing; American term for the setting |
+| 2 Nov 2026 | Tools work only on tiles next to the player, and the right tool is picked automatically when pointing at something to clear | From the M2 play-test: a highlight running ahead of the player felt wrong, and picking tools by hand was tedious |
 
 ## 11. Open questions
 
