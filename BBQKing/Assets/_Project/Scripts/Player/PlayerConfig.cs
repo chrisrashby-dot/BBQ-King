@@ -28,11 +28,12 @@ namespace BBQKing.Player
         [Range(0.1f, 2f)] public float reachRadius = 0.6f;
 
         [Header("Tools")]
-        [Tooltip("How far from the player's feet the mouse can pick a tile to work on, in tiles. " +
-                 "Further away, the tool works on the tile the player is facing.")]
-        [Range(0.5f, 4f)] public float toolReach = 1.5f;
+        [Tooltip("How many tiles from the tile the player stands on the mouse can pick a tile to work " +
+                 "on. 1 means only the tiles touching it, diagonals included. Further away, clicks do nothing.")]
+        [Range(0, 3)] public int toolReachTiles = 1;
 
-        [Tooltip("How far in front of the player's feet the faced tile is picked, in tiles.")]
+        [Tooltip("With no mouse (a gamepad), how far in front of the player's feet the faced tile is " +
+                 "picked, in tiles.")]
         [Range(0.1f, 1.5f)] public float toolFacingDistance = 0.6f;
 
         [Tooltip("While the use-tool button is held, seconds between one use and the next.")]

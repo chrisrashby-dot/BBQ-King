@@ -25,7 +25,7 @@ The game itself. Design decisions live in `../design.md`, working rules in `../C
 | Jobs board | Tab (gamepad Select) |
 | Close a letter, note or the jobs board | E, Escape, Tab or right mouse button (gamepad B) |
 
-The tool works on the highlighted tile: the tile under the mouse if it is within reach (1.5 tiles of the player's feet), otherwise the tile the player is facing.
+Point the mouse at a tile next to the player (diagonals included, or the tile they stand on) and a highlight appears; clicking works on that tile. Clicking further away does nothing, so walk up to what you want to clear. With a gamepad, the tool works on the tile the player is facing.
 
 ### Playing Job 1 (Clear the patio)
 
@@ -60,7 +60,7 @@ All gameplay values live in assets under `Assets/_Project/Data/`, not in scripts
 
 | Asset | What it controls |
 | --- | --- |
-| `Data/Player/PlayerConfig` | Walking speed (3.5 tiles a second), walk animation speed, how far the player can reach to use things, tool reach (1.5 tiles), how far ahead the faced tile is (0.6 tiles), and the time between uses while the button is held (0.3 seconds) |
+| `Data/Player/PlayerConfig` | Walking speed (3.5 tiles a second), walk animation speed, how far the player can reach to use things, tool reach (1 tile around the player's tile), how far ahead the faced tile is with a gamepad (0.6 tiles), and the time between uses while the button is held (0.3 seconds) |
 | `Data/Characters/PlayerSprites` | The walk frames for each direction |
 | `Data/Messages/RelativeLetter`, `BackDoor`, `Job1Done` | The text shown for the letter, the door and finishing Job 1 |
 | `Data/Settings/DisplayConfig` | Reference resolution |
@@ -155,7 +155,7 @@ If you ever set them by hand: select the image, set these in the Inspector, then
 ## Running the tests
 
 1. Open **Window > General > Test Runner**.
-2. On the **EditMode** tab, click **Run All**. These check the facing and walk-cycle rules, toolbar slots, tool aiming, clearing counts and job statuses (36 tests).
+2. On the **EditMode** tab, click **Run All**. These check the facing and walk-cycle rules, toolbar slots, tool aiming, clearing counts and job statuses (37 tests).
 3. On the **PlayMode** tab, click **Run All**. These load the Backyard and press keys and mouse buttons on a pretend keyboard and mouse (11 tests):
    - walking, the letter, the back door, fences (including standing behind the bottom fence) and the resolution switch;
    - pulling a weed with the gloves, and the hint for the wrong tool;

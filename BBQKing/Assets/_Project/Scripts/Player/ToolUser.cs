@@ -6,7 +6,8 @@ namespace BBQKing.Player
 {
     /// <summary>
     /// Works out which tile the player's tool is aimed at each frame and moves a highlight there,
-    /// so the player can always see what a click will affect (see <see cref="ToolTargeting"/>).
+    /// so the player can see what a click will affect (see <see cref="ToolTargeting"/>). With a
+    /// mouse the highlight only appears while the pointer is over a tile next to the player.
     ///
     /// Pressing the use-tool button (left mouse) uses the tool once; holding it keeps using it at
     /// the rate set in PlayerConfig. Each use is posted to a channel, and whichever system owns
@@ -44,8 +45,11 @@ namespace BBQKing.Player
             if (HasTarget)
             {
                 Vector2 facing = movement != null ? movement.FacingVector : Vector2.down;
-                TargetCell = ToolTargeting.Choose(transform.position, facing, AimInWorld(),
-                    config.toolReach, config.toolFacingDistance);
+                var cell = ToolTargeting.Choose(transform.position, facing, AimInWorld(),
+                    config.toolReachTiles, config.toolFacingDistance);
+                // With a mouse, a pointer away from the player gives no target: no highlight, no use.
+                HasTarget = cell.HasValue;
+                if (cell.HasValue) TargetCell = cell.Value;
             }
 
             if (highlight != null)

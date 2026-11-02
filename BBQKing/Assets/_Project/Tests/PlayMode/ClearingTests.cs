@@ -40,14 +40,25 @@ namespace BBQKing.Tests
         }
 
         [UnityTest]
-        public IEnumerator GlovesPullAWeedInFrontOfThePlayer()
+        public IEnumerator GlovesPullAWeedNextToThePlayer()
         {
             var cell = StandAboveAWeed();
             yield return Frames(2);
             // Gloves are in slot 1, which is selected at the start. Hold the button long enough for
             // the largest weed (3 pulls at the PlayerConfig repeat rate).
-            yield return HoldLeftMouse(1.2f);
+            yield return HoldLeftMouseOn(cell, 1.2f);
             Assert.IsNull(clearing.ClearableAt(cell), "the weed should be gone");
+        }
+
+        [UnityTest]
+        public IEnumerator ClickingATileOutOfReachDoesNothing()
+        {
+            var cell = StandAboveAWeed();
+            // Walk away so the weed is three tiles below the player's tile.
+            Teleport(new Vector2(cell.x + 0.5f, cell.y + 3.4f));
+            yield return Frames(2);
+            yield return HoldLeftMouseOn(cell, 1.2f);
+            Assert.IsNotNull(clearing.ClearableAt(cell), "a weed out of reach should be left alone");
         }
 
         [UnityTest]
@@ -55,7 +66,7 @@ namespace BBQKing.Tests
         {
             var cell = StandAboveAWeed();
             yield return Hold(Key.Digit2, 0.05f); // the trash bag
-            yield return HoldLeftMouse(0.1f);
+            yield return HoldLeftMouseOn(cell, 0.1f);
             Assert.IsNotNull(clearing.ClearableAt(cell), "the wrong tool should not clear it");
             StringAssert.Contains("gloves", hintLabel.text);
             Assert.Greater(hintLabel.color.a, 0.5f, "the hint should be showing");

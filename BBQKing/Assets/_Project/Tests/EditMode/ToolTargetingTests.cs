@@ -4,10 +4,13 @@ using UnityEngine;
 
 namespace BBQKing.Tests
 {
-    /// <summary>Checks which tile a tool aims at: the mouse tile within reach, otherwise the faced tile.</summary>
+    /// <summary>
+    /// Checks which tile a tool aims at: with a mouse, the pointer's tile if it touches the player's
+    /// tile, otherwise nothing; with no mouse, the faced tile.
+    /// </summary>
     public class ToolTargetingTests
     {
-        const float Reach = 1.5f;
+        const int Reach = 1;
         const float FacingDistance = 0.6f;
         static readonly Vector2 Feet = new Vector2(10.5f, 10.4f); // standing in tile (10, 10)
 
@@ -26,18 +29,24 @@ namespace BBQKing.Tests
         }
 
         [Test]
-        public void MouseOnANearbyTileWins()
+        public void MouseOnADiagonalNeighbourIsUsed()
         {
-            // The tile diagonally up and left, whose centre is about 1.3 tiles from the feet.
             var cell = ToolTargeting.Choose(Feet, Vector2.down, new Vector2(9.2f, 11.7f), Reach, FacingDistance);
             Assert.AreEqual(new Vector2Int(9, 11), cell);
         }
 
         [Test]
-        public void MouseOutOfReachFallsBackToTheFacedTile()
+        public void MouseOnThePlayersOwnTileIsUsed()
         {
-            var cell = ToolTargeting.Choose(Feet, Vector2.down, new Vector2(14.5f, 10.5f), Reach, FacingDistance);
-            Assert.AreEqual(new Vector2Int(10, 9), cell);
+            var cell = ToolTargeting.Choose(Feet, Vector2.down, new Vector2(10.9f, 10.1f), Reach, FacingDistance);
+            Assert.AreEqual(new Vector2Int(10, 10), cell);
+        }
+
+        [Test]
+        public void MouseTwoTilesAwayGivesNoTarget()
+        {
+            var cell = ToolTargeting.Choose(Feet, Vector2.down, new Vector2(12.5f, 10.5f), Reach, FacingDistance);
+            Assert.IsNull(cell, "a click two tiles away should do nothing, not fall back to the faced tile");
         }
 
         [Test]

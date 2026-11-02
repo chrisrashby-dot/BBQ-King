@@ -7,7 +7,7 @@ Claude Code updates this file at the end of every session. Newest entry at the t
 | Milestone | Status |
 | --- | --- |
 | M1 Foundations | Done (play-tested 1 Nov 2026) |
-| M2 Restoration | Built; waiting for a hand play-test in the Editor |
+| M2 Restoration | Built; play-tested once (2 Nov 2026), targeting changed |
 | M3 Cleaning | Not started |
 | M4 First cookout | Not started |
 | M5 Economy and saving | Not started |
@@ -55,7 +55,7 @@ Next: **M2 Restoration** (tile clearing with tools, Job 1, the jobs board).
 M2 decisions from the developer (1 Nov 2026):
 - **Gloves and trash bag are two separate tools:** gloves pull weeds, the trash bag picks up trash. This changes design.md section 5.2 (see questions below).
 - **"Trash bag", not "bin bag":** the American term, for the setting.
-- **Targeting:** the tool works on the tile under the mouse when it is within reach, otherwise on the tile the player faces, with a highlight.
+- **Targeting:** changed after the play-test on 2 Nov 2026, at the developer's request: with a mouse, clicks only work on the tiles touching the player's tile (diagonals included) and the highlight only shows while the pointer is over one. The highlight no longer runs ahead of the player. A gamepad still uses the faced tile.
 - **Job complete:** when every tile in the job is cleared (the 95% rule stays for close-up scrubbing).
 - **Weekend counter:** waits for M4.
 
@@ -64,7 +64,7 @@ M2 decisions from the developer (1 Nov 2026):
 - **Design changes to record (1 Nov 2026):** please update the master design document:
   - Section 5.2 Tools: gloves and trash bags as two separate tools ("gloves, trash bags, rake, shears, scraper, wire brush and hose").
   - Section 8 Tools: "bin bag" becomes "trash bag". (Section 8 also says "rubbish bags" under Overgrowth and rubbish; in-game this reads as trash, but the placeholder files keep the section 8 names, such as `rubbish_bag.png`, so they still match one for one. Say if you would like those renamed too.)
-- **M2 starting values to tune (design.md does not set them):** small, medium and large weeds take 1, 2 and 3 pulls; each piece of trash takes 1; 45% of patio slabs start weedy and 15% of the rest have trash; tool reach 1.5 tiles; holding the button uses the tool every 0.3 seconds. All are in data assets (see the README) except the two shares, which are in `Editor/BackyardLayout.cs`.
+- **M2 starting values to tune (design.md does not set them):** small, medium and large weeds take 1, 2 and 3 pulls; each piece of trash takes 1; 45% of patio slabs start weedy and 15% of the rest have trash; tool reach 1 tile around the player's tile; holding the button uses the tool every 0.3 seconds. All are in data assets (see the README) except the two shares, which are in `Editor/BackyardLayout.cs`.
 - **Jobs and events:** each job currently needs only the job before it. In design.md section 4.3, events come between some jobs (for example Event 1 before Job 3); that link arrives with events in M4.
 - **Job 1 completion text:** "Patio cleared!" in `Data/Messages/Job1Done` is marked as placeholder text. Job 1 also unlocks the grilled corn recipe card (section 4.5); recipe cards arrive in M7.
 - **Reference resolution (answered 1 Nov 2026):** 960x540 chosen after testing. design.md and CLAUDE.md are both updated.
